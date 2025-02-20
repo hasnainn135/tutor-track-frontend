@@ -5,6 +5,7 @@ const BookSession: FC = () => {
   return (
     <ContainerLayout heading="Book a Session">
       Book a Session <br />
+      Book a Session <br />
     </ContainerLayout>
   );
 };
