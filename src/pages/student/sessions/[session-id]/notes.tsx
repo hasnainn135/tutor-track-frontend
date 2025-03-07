@@ -1,7 +1,7 @@
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { useUsers } from "@/hooks/useUsers";
 import ContainerLayout from "@/pages/layouts/ContainerLayout";
-import { Notes, SessionsType, TutorType } from "@/types/usertypes";
+import { SessionsType, TutorType } from "@/types/usertypes";
 import { useRouter } from "next/router";
 import React, { FC, useEffect, useState } from "react";
 
@@ -11,37 +11,24 @@ const StudentNotes: FC = () => {
   const { loggedInStudent, getTutorById, loading } = useUsers();
 
   const [session, setSession] = useState<SessionsType | undefined>(undefined);
-  const [sessionLoading, setSessionLoading] = useState<boolean>(false);
-  const [sessionNotFound, setSessionNotFound] = useState<boolean>(false);
   const [tutor, setTutor] = useState<TutorType | undefined>(undefined);
 
-  // GET SESSION DATA
+  //GET SESSION DATA
   useEffect(() => {
-    const getSession = async () => {
-      setSessionLoading(true);
-      try {
-        const response = await fetch("/sessions.json");
-        if (!response.ok) {
-          throw new Error("Failed to load data");
-        }
-        const allSessions: SessionsType[] = await response.json();
+    if (loggedInStudent && sessionId) {
+      const foundSession = loggedInStudent.sessions?.find(
+        (s) => s.id === sessionId
+      );
 
-        const sessionData: SessionsType | undefined = allSessions.find(
-          (session) => session.id === sessionId
-        );
-
-        setSession(sessionData);
-      } catch (e) {
-        setSessionNotFound(true);
-      } finally {
-        setSessionLoading(false);
+      if (foundSession) {
+        setSession(foundSession);
+      } else {
+        console.error("Session not found");
       }
-    };
-
-    if (loggedInStudent && sessionId) getSession();
+    }
   }, [sessionId, loggedInStudent]);
 
-  // GET TUTOR DATA
+  //GET TUTOR DATA
   useEffect(() => {
     const getTutor = async () => {
       if (session) {
@@ -53,14 +40,12 @@ const StudentNotes: FC = () => {
     getTutor();
   }, [session]);
 
-  if (sessionLoading)
+  if (loading)
     return (
       <div className="mx-auto h-full grid place-content-center">
         <LoadingSpinner />
       </div>
     );
-
-  if (sessionNotFound) return <div className="">Session Not Found</div>;
 
   if (session)
     return (
@@ -68,7 +53,7 @@ const StudentNotes: FC = () => {
         <div className="flex flex-col gap-1 text-sm">
           <div className="flex items-center justify-start gap-2 font-semibold">
             <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200">
-              <img src={tutor?.pfp} alt="" className="object-cover h-8" />
+              <img src={tutor?.pfp} alt="" className="object-cover w-full" />
             </div>
             <p>{tutor?.name}</p>
           </div>
@@ -84,7 +69,7 @@ const StudentNotes: FC = () => {
         {/* NOTES */}
         <div className="pt-3">
           {session.notes ? (
-            session.notes.map((note: Notes) => {
+            session.notes.map((note) => {
               return (
                 <div
                   key={note.id}
@@ -121,6 +106,8 @@ const StudentNotes: FC = () => {
         </div>
       </ContainerLayout>
     );
+
+  if (!session) return <div className="">Session Not Found</div>;
 };
 
 export default StudentNotes;

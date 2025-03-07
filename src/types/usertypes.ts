@@ -6,22 +6,19 @@ export type TutorType = {
   pfp: string;
   timeSlots: string[];
   sessions: string[] | undefined;
-  booked_students: string[] | undefined;
 };
 
 export type StudentType = {
   id: string;
   name: string;
   pfp: string;
-  sessions: string[] | undefined;
-  booked_tutors:
-    | {
-        tutor_id: string;
-        total_session: number;
-        total_hours: string;
-        dues: string;
-      }[]
-    | undefined;
+  sessions: SessionsType[] | undefined;
+  booked_tutors: {
+    tutor_id: string;
+    total_session: number;
+    total_hours: string;
+    dues: string;
+  }[];
 };
 
 export type SessionsType = {
