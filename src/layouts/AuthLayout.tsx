@@ -14,7 +14,7 @@ function AuthLayout({ children }: AuthLayoutProps) {
           {children}
         </div>
 
-        <div className="relative bg-green-950 w-1/2 h-screen flex flex-col text-white justify-center items-center">
+        <div className="bg-green-950 w-1/2 h-screen flex flex-col text-white justify-center items-center">
 
           <div className="absolute top-12">
             <p className="text-xl text-center">Welcome to</p>
