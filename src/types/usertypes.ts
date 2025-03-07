@@ -1,3 +1,4 @@
+
 import { Day } from "date-fns";
 
 export type TutorType = {
@@ -6,19 +7,22 @@ export type TutorType = {
   pfp: string;
   timeSlots: string[];
   sessions: string[] | undefined;
+  booked_students: string[] | undefined;
 };
 
 export type StudentType = {
   id: string;
   name: string;
   pfp: string;
-  sessions: SessionsType[] | undefined;
-  booked_tutors: {
-    tutor_id: string;
-    total_session: number;
-    total_hours: string;
-    dues: string;
-  }[];
+  sessions: string[] | undefined;
+  booked_tutors:
+    | {
+        tutor_id: string;
+        total_session: number;
+        total_hours: string;
+        dues: string;
+      }[]
+    | undefined;
 };
 
 export type SessionsType = {
