@@ -1,20 +1,22 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { FC } from "react";
-import { RxHome, RxCalendar } from "react-icons/rx";
+import { RxCalendar } from "react-icons/rx";
 import { RiSettings3Line } from "react-icons/ri";
 import { PiUsersThree, PiGraduationCap } from "react-icons/pi";
 import { MdLogout } from "react-icons/md";
 import { FaRegCircleUser } from "react-icons/fa6";
 import { IoAnalytics } from "react-icons/io5";
+import { BsGrid1X2 } from "react-icons/bs";
+import { useUsers } from "@/hooks/useUsers";
 
 type StudentSidebarProps = {
-  userType: "student" | "tutor";
   children: React.ReactNode;
 };
 
-const StudentSidebar: FC<StudentSidebarProps> = ({ userType, children }) => {
+const StudentSidebar: FC<StudentSidebarProps> = ({ children }) => {
   const router = useRouter();
+  const { userType } = useUsers();
 
   // Define pages where the sidebar should be shown
   const pagesWithSidebar = [
@@ -22,7 +24,7 @@ const StudentSidebar: FC<StudentSidebarProps> = ({ userType, children }) => {
     "/student/dashboard",
     "/student/sessions",
     "/student/my-tutors",
-    "/student/find-tutor",
+    "/student/find-tutors",
     "/student/book-a-session",
     // tutor pages
     "/tutor/dashboard",
@@ -33,13 +35,20 @@ const StudentSidebar: FC<StudentSidebarProps> = ({ userType, children }) => {
     "/chat",
   ];
 
-  const showSidebar = pagesWithSidebar.includes(router.pathname);
+  const dynamicPagesWithSidebar = [
+    /^\/student\/sessions\/[^/]+\/notes$/, // Matches /student/sessions/{sessionId}/notes
+    /^\/tutor\/sessions\/[^/]+\/notes$/,
+  ];
+
+  const showSidebar =
+    pagesWithSidebar.some((page) => router.pathname.startsWith(page)) ||
+    dynamicPagesWithSidebar.some((regex) => regex.test(router.pathname));
 
   const studentLinks = [
     {
       href: "/student/dashboard",
       label: "Dashboard",
-      icon: <RxHome className="size-6" />,
+      icon: <BsGrid1X2 className="size-5" />,
     },
     {
       href: "/student/sessions",
@@ -61,7 +70,7 @@ const StudentSidebar: FC<StudentSidebarProps> = ({ userType, children }) => {
     {
       href: "/tutor/dashboard",
       label: "Dashboard",
-      icon: <RxHome className="size-6" />,
+      icon: <BsGrid1X2 className="size-5" />,
     },
     {
       href: "/tutor/sessions",
@@ -97,6 +106,7 @@ const StudentSidebar: FC<StudentSidebarProps> = ({ userType, children }) => {
                     {studentLinks.map((nav) => {
                       return (
                         <Link
+                          key={nav.href}
                           href={nav.href}
                           className={`px-4 py-2 flex gap-2 items-center text-lg hover:bg-light_green/10 rounded-md w-full ${
                             router.pathname === nav.href
@@ -114,6 +124,7 @@ const StudentSidebar: FC<StudentSidebarProps> = ({ userType, children }) => {
                     {tutorLinks.map((nav) => {
                       return (
                         <Link
+                          key={nav.href}
                           href={nav.href}
                           className={`px-4 py-2 flex gap-4 items-center text-lg hover:bg-light_green/10 rounded-md w-full ${
                             router.pathname === nav.href

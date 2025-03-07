@@ -1,0 +1,94 @@
+[
+  {
+    "id": "t1",
+    "name": "Tony Stark",
+    "pfp": "/imgs/face.png",
+    "timeSlots": [
+      "5 : 30pm",
+      "5 : 45pm",
+      "6 : 00pm",
+      "6 : 15pm",
+      "6 : 30pm",
+      "6 : 45pm",
+      "7 : 00pm",
+      "7 : 15pm",
+      "7 : 30pm",
+      "7 : 45pm",
+      "8 : 00pm"
+    ],
+    "sessions": ["s1", "s3", "s4", "s9", "s13", "s17"],
+    "booked_students": ["stu_1"]
+  },
+  {
+    "id": "t2",
+    "name": "Bruce Wayne",
+    "pfp": "/imgs/face.png",
+    "timeSlots": [
+      "4 : 00pm",
+      "4 : 15pm",
+      "4 : 30pm",
+      "4 : 45pm",
+      "5 : 00pm",
+      "5 : 15pm",
+      "5 : 30pm",
+      "5 : 45pm",
+      "6 : 00pm"
+    ],
+    "sessions": ["s2", "s6", "s11", "s16"],
+    "booked_students": ["stu_1"]
+  },
+  {
+    "id": "t3",
+    "name": "Diana Prince",
+    "pfp": "/imgs/face.png",
+    "timeSlots": [
+      "2 : 00pm",
+      "2 : 15pm",
+      "2 : 30pm",
+      "2 : 45pm",
+      "3 : 00pm",
+      "3 : 15pm",
+      "3 : 30pm",
+      "3 : 45pm",
+      "4 : 00pm"
+    ],
+    "sessions": ["s5", "s8", "s12", "s19", "s20", "s21", "s22", "s23"],
+    "booked_students": ["stu_1", "stu_2", "stu_3"]
+  },
+  {
+    "id": "t4",
+    "name": "Peter Parker",
+    "pfp": "/imgs/face.png",
+    "timeSlots": [
+      "10 : 00am",
+      "10 : 15am",
+      "10 : 30am",
+      "10 : 45am",
+      "11 : 00am",
+      "11 : 15am",
+      "11 : 30am",
+      "11 : 45am",
+      "12 : 00pm"
+    ],
+    "sessions": ["s7", "s15"],
+    "booked_students": ["stu_1"]
+  },
+  {
+    "id": "t5",
+    "name": "Clark Kent",
+    "pfp": "/imgs/face.png",
+    "timeSlots": [
+      "1 : 00pm",
+      "1 : 15pm",
+      "1 : 30pm",
+      "1 : 45pm",
+      "2 : 00pm",
+      "2 : 15pm",
+      "2 : 30pm",
+      "2 : 45pm",
+      "3 : 00pm"
+    ],
+    "sessions": ["s10", "s14", "s18"],
+    "booked_students": ["stu_1"]
+  }
+]

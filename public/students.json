@@ -1,0 +1,137 @@
+[
+  {
+    "id": "stu_1",
+    "name": "Abdul Raffey",
+    "pfp": "/imgs/std.jpg",
+    "booked_tutors": [
+      {
+        "tutor_id": "t1",
+        "total_session": 5,
+        "total_hours": "5",
+        "dues": 0
+      },
+      {
+        "tutor_id": "t2",
+        "total_session": 5,
+        "total_hours": "5",
+        "dues": 0
+      },
+      {
+        "tutor_id": "t3",
+        "total_session": 5,
+        "total_hours": "5",
+        "dues": 0
+      },
+      {
+        "tutor_id": "t4",
+        "total_session": 5,
+        "total_hours": "5",
+        "dues": 0
+      },
+      {
+        "tutor_id": "t5",
+        "total_session": 5,
+        "total_hours": "5",
+        "dues": 0
+      }
+    ],
+    "sessions": [
+      "s1",
+      "s2",
+      "s3",
+      "s4",
+      "s5",
+      "s6",
+      "s7",
+      "s8",
+      "s9",
+      "s10",
+      "s11",
+      "s12",
+      "s13",
+      "s214",
+      "s15",
+      "s16",
+      "s17",
+      "s218",
+      "s19",
+      "s20"
+    ]
+  },
+  {
+    "id": "stu_2",
+    "name": "Imran Khan",
+    "pfp": "/imgs/mav.webp",
+    "booked_tutors": [
+      {
+        "tutor_id": "t1",
+        "total_session": 5,
+        "total_hours": "5",
+        "dues": 0
+      },
+      {
+        "tutor_id": "t2",
+        "total_session": 5,
+        "total_hours": "5",
+        "dues": 0
+      },
+      {
+        "tutor_id": "t3",
+        "total_session": 5,
+        "total_hours": "5",
+        "dues": 0
+      },
+      {
+        "tutor_id": "t4",
+        "total_session": 5,
+        "total_hours": "5",
+        "dues": 0
+      },
+      {
+        "tutor_id": "t5",
+        "total_session": 5,
+        "total_hours": "5",
+        "dues": 0
+      }
+    ],
+    "sessions": []
+  },
+  {
+    "id": "stu_3",
+    "name": "Messi Jr",
+    "pfp": "/imgs/messi.png",
+    "booked_tutors": [
+      {
+        "tutor_id": "t1",
+        "total_session": 5,
+        "total_hours": "5",
+        "dues": 0
+      },
+      {
+        "tutor_id": "t2",
+        "total_session": 5,
+        "total_hours": "5",
+        "dues": 0
+      },
+      {
+        "tutor_id": "t3",
+        "total_session": 5,
+        "total_hours": "5",
+        "dues": 0
+      },
+      {
+        "tutor_id": "t4",
+        "total_session": 5,
+        "total_hours": "5",
+        "dues": 0
+      },
+      {
+        "tutor_id": "t5",
+        "total_session": 5,
+        "total_hours": "5",
+        "dues": 0
+      }
+    ],
+    "sessions": []
+  }
+]
