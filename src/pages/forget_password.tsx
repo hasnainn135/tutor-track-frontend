@@ -15,7 +15,7 @@ const ForgetPassword = () => {
             type="email"
             id="alt_email"
             name="alt_email"
-            className="border w-80 border-[#bababa] rounded-md"
+            className="border w-80 border-[#bababa] rounded-md h-9"
           />
           <button type="submit" className="bg-[#169962] border w-80 border-[#bababa] rounded-md mt-4 text-white py-1">Send reset link</button>
 
