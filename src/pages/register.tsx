@@ -47,7 +47,7 @@ const register = () => {
         
         
 
-        <div className="bg-green-950 w-1/2 h-screen flex flex-col text-white justify-center items-center overflow-hidden">
+        <div className="bg-green-950 w-1/2 h-screen flex-col text-white justify-center items-center overflow-hidden hidden lg:flex">
 
           <div className="absolute top-12">
             <p className="text-xl text-center">Welcome to</p>
