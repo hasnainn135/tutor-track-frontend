@@ -7,24 +7,26 @@ const forget_password_success = () => {
     <div>
          <>
       <div className="w-full h-screen flex flex-row">
-        <div className="bg-white w-1/2 h-screen flex flex-col justify-center items-center">
-          <h1 className='font-bold text-center text-6xl mb-12'>Forgot Your Password?</h1>
+        <div className="bg-white w-full lg:w-1/2 h-screen flex flex-col justify-center items-center">
+          <h1 className='font-bold text-center text-4xl sm:text-6xl mb-12'>Forgot Your Password?</h1>
           <p className='text-lg text-center'> We have sent an email containing the link to rest your password to your email account.</p>
-          <button type="submit" className="bg-[#169962] border w-80 border-[#bababa] rounded-md mt-4 text-white py-1">Back to Login</button>
+          <button type="submit" className="bg-[#169962] border w-50 sm:w-80 border-[#bababa] rounded-md mt-4 text-white py-1">Back to Login</button>
           </div>
 
-        <div className="bg-green-950 w-1/2 h-screen flex flex-col text-white justify-center items-center">
+        <div className="bg-green-950 w-1/2 h-screen flex-col text-white justify-center items-center overflow-hidden hidden lg:flex relative">
 
-          <div className="absolute top-12">
-            <p className="text-xl text-center">Welcome to</p>
-            <h1 className="text-6xl font-bold text-center">TutorTrack</h1>
-          </div>
+        <div className='absolute top-10'>
+          <p className='text-center'>Welcome to</p>
+          <h1 className='font-bold lg:text-4xl xl:text-6xl '>TutorTrack</h1>
+        </div>
 
-          <Image
-            src={laptopAuthImage}
-            alt={"laptop image"}
-            className="absolute h-[30rem] w-auto -right-20"
-          />
+        
+        <Image
+        src={laptopAuthImage}
+        alt="Laptop"
+        className='absolute lg:h-[20rem] xl:h-[27rem]  -right-24 2xl:mt-10 xl:translate-y-12 2xl:translate-y-0 w-auto '
+        />
+
         </div>
       </div>
     </>

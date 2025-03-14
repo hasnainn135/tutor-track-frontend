@@ -12,13 +12,13 @@ const register = () => {
     <div>
         <>
       <div className="w-full h-screen flex flex-row">
-        <div className="bg-white w-1/2 h-screen flex flex-col justify-center items-center">
+        <div className="bg-white w-full lg:w-1/2 h-screen flex flex-col justify-center items-center">
             <h1 className="font-bold text-center text-6xl mb-12" >Register</h1>
-            <div className="w-[30rem] h-14 bg-[#EDEDED] border border-[#bababa] rounded-md flex flex-row justify-center items-center py-2 px-2">
+            <div className="w-full sm:w-[30rem] h-14 bg-[#EDEDED] border border-[#bababa] rounded-md flex flex-row justify-center items-center py-2 px-2">
                 <button onClick={()=> setSelectedRole("student")}  type="button" className={`w-full rounded-md font-medium ${selectedRole === "student"? "bg-green-700 text-white":"bg-transparent text-green-700"} h-full`}>Student</button>
                 <button onClick={()=> setSelectedRole("tutor")}  type="button" className={`w-full rounded-md font-medium ${selectedRole === "tutor"? "bg-green-700 text-white":"bg-transparent text-green-700"} h-full`}>Tutor</button>
             </div>
-            <form className="w-[30rem] mt-3 space-y-2">
+            <form className="w-full sm:w-[30rem] mt-3 space-y-2">
                 <div className='flex flex-row w-full'>
                     <div className='flex flex-col mr-2 w-full'>
                     <label htmlFor="username">User name <span className='text-red-600'>*</span></label>
@@ -47,18 +47,20 @@ const register = () => {
         
         
 
-        <div className="bg-green-950 w-1/2 h-screen flex-col text-white justify-center items-center overflow-hidden hidden lg:flex">
+        <div className="bg-green-950 w-1/2 h-screen flex-col text-white justify-center items-center overflow-hidden hidden lg:flex relative">
 
-          <div className="absolute top-12">
-            <p className="text-xl text-center">Welcome to</p>
-            <h1 className="text-6xl font-bold text-center">TutorTrack</h1>
-          </div>
+        <div className='absolute top-10'>
+          <p className='text-center'>Welcome to</p>
+          <h1 className='font-bold lg:text-4xl xl:text-6xl '>TutorTrack</h1>
+        </div>
 
-          <Image
-            src={laptopAuthImage}
-            alt={"laptop image"}
-            className="absolute h-[30rem] w-auto -right-20"
-          />
+        
+        <Image
+        src={laptopAuthImage}
+        alt="Laptop"
+        className='absolute lg:h-[22rem] xl:h-[27rem]  -right-24 2xl:mt-10 xl:translate-y-12 2xl:translate-y-0 w-auto '
+        />
+
         </div>
       </div>
     </>
