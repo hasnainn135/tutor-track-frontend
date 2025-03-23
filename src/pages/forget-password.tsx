@@ -1,16 +1,37 @@
 import AuthLayout from "@/layouts/AuthLayout";
-import React from "react";
+import React, { FormEvent, useState } from "react";
 import Image from "next/image";
 import laptopAuthImage from "@/assets/laptopAuthImage.png";
+import Link from "next/link";
+import { auth } from "@/firebase/firebase";
+import { getAuth, sendPasswordResetEmail } from "firebase/auth";
+
+
 
 const ForgetPassword = () => {
+  const [error, setError] = useState<string>("");
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    console.log("function called");
+    
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("alt_email") as string;
+
+    try{
+      await sendPasswordResetEmail(auth,email)
+    }catch (e:any){
+      setError(e.message);
+    }
+
+  }
   return (
     <>
       <div className="w-full h-screen flex flex-row">
         <div className="bg-white w-full lg:w-1/2 h-screen flex flex-col justify-center items-center">
         <h1 className="font-bold text-center text-4xl sm:text-6xl mb-12" >Forgot Your Password?</h1>
-        <form className="flex flex-col">
-        <label htmlFor="alt_email">Alternate Email</label>
+        <form onSubmit={handleSubmit} className="flex flex-col">
+        <label htmlFor="alt_email">Your Email</label>
           <input
             type="email"
             id="alt_email"
@@ -20,7 +41,8 @@ const ForgetPassword = () => {
           <button type="submit" className="bg-[#169962] border sm:w-80 border-[#bababa] rounded-md mt-4 text-white py-1">Send reset link</button>
 
         </form>
-        <p className="text-[#169962] mt-4">Back to login</p>
+        <Link href="/login" className="text-[#169962] mt-4">Back to login</Link>
+        <p className="text-red">{error}</p>
         
         </div>
 

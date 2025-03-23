@@ -1,12 +1,50 @@
-import React from 'react'
+import React, { FormEvent } from 'react'
 import Image from "next/image";
 import laptopAuthImage from "@/assets/laptopAuthImage.png";
 import { useState } from 'react';
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/firebase/firebase";
+import Link from "next/link";
+import { useRouter } from 'next/router'
 
 type userRoleType = "student" | "tutor"
 
 const register = () => {
     const [selectedRole, setSelectedRole] = useState<userRoleType>("student");
+    const [error, setError] = useState<string>("");
+    const router = useRouter()
+
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      console.log("function called");
+
+      const formData = new FormData(e.currentTarget);
+      const userName = formData.get("username") as string;
+      const email = formData.get("email") as string;
+      const password = formData.get("password") as string;
+      const confirmPassword = formData.get("conf_password") as string;
+
+      if (password !== confirmPassword) {
+        console.log("Password is not Correct");
+        setError("Password does not match");
+        return;
+      }
+
+      if (!userName || !email || !password || !confirmPassword) {
+        console.log("One of the field is empty");
+        setError("One of the field is empty");
+        return;
+      }
+
+      try {
+        const user = await createUserWithEmailAndPassword(auth, email, password);
+        router.push("/")
+      } catch (e:any) {
+        setError(e.message);
+      }
+
+
+    };
 
   return (
     <div>
@@ -18,30 +56,34 @@ const register = () => {
                 <button onClick={()=> setSelectedRole("student")}  type="button" className={`w-full rounded-md font-medium ${selectedRole === "student"? "bg-green-700 text-white":"bg-transparent text-green-700"} h-full`}>Student</button>
                 <button onClick={()=> setSelectedRole("tutor")}  type="button" className={`w-full rounded-md font-medium ${selectedRole === "tutor"? "bg-green-700 text-white":"bg-transparent text-green-700"} h-full`}>Tutor</button>
             </div>
-            <form className="w-full sm:w-[30rem] mt-3 space-y-2">
+            <form 
+              onSubmit={handleSubmit}
+              className="w-full sm:w-[30rem] mt-3 space-y-2">
                 <div className='flex flex-row w-full'>
                     <div className='flex flex-col mr-2 w-full'>
                     <label htmlFor="username">User name <span className='text-red-600'>*</span></label>
-                    <input type="text" id='username' name='username' className='border border-[#bababa]  rounded-md mt-2 h-9 ' />
+                    <input type="text" id='username' name='username' className='border border-[#bababa]  rounded-md mt-2 h-9 ' required/>
                     </div>
                     <div className='flex flex-col w-full'>
                     <label htmlFor="email">Email <span className='text-black'>*</span></label>
-                    <input type="email" id='email' name='email' className='border border-[#bababa]  rounded-md mt-2 h-9' />
+                    <input type="email" id='email' name='email' className='border border-[#bababa]  rounded-md mt-2 h-9' required/>
                     </div> 
                 </div>
                 
                 <div className='flex flex-row pb-2'> 
                     <div className='flex flex-col mr-2 w-full'>
                     <label htmlFor="password">Password <span className='text-red-600'>*</span></label>
-                    <input type="password" id='password' name='password' className='border border-[#bababa]  rounded-md mt-2 h-9' />
+                    <input type="password" id='password' name='password' className='border border-[#bababa]  rounded-md mt-2 h-9' required />
                     </div>
                     <div className='flex flex-col w-full'>
                     <label htmlFor="conf_passowrd">Confirm Password <span className='text-red-600'>*</span></label>
-                    <input type="password" id='conf_password' name='conf_password' className='border border-[#bababa]  rounded-md mt-2 h-9' />
+                    <input type="password" id='conf_password' name='conf_password' className='border border-[#bababa]  rounded-md mt-2 h-9' required />
                     </div>
                 </div>
                 <button type="submit" className="bg-[#169962] border w-full h-9 border-[#bababa] rounded-md text-white py-1">Register</button>
-                <p className='text-green-700 text-center'>Already have an Account?</p>
+                
+                <Link href="/login" className='text-green-700 text-center block'>Already have an Account?</Link>
+                <p className='text-red'>{error}</p>
             </form>
         </div>
         
