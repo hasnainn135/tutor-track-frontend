@@ -17,9 +17,9 @@ interface AuthStateType {
   userData: UserSchema | TutorUserSchema | null;
   authLoading: boolean;
   setUser: (user: User) => void;
-  setUserData: (user: UserSchema | TutorUserSchema) => void;
+  setUserData: (userData: UserSchema | TutorUserSchema) => void;
   setAuthLoading: (authLoading: boolean) => void;
-  initAuth: () => Unsubscribe;
+  setAuthState: (user: User | null, userData: UserSchema | TutorUserSchema | null, authLoading: boolean) => void;
   signUp: (
     email: string,
     pw: string,
@@ -40,26 +40,12 @@ const useAuthState = create<AuthStateType>((set) => ({
   setUser: (user: User) => set(() => ({ user: user })),
   setUserData: (userData) => set(() => ({ userData: userData })),
   setAuthLoading: (authLoading) => set(() => ({ authLoading: authLoading })),
-  initAuth: () => {
-    console.log("oi hui");
-    return auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        console.log("user is authenticated");
-        const docRef = await getDoc(doc(db, "users", user.uid));
-        set(() => ({
-          user: user,
-          userData: docRef.data() as UserSchema | TutorUserSchema,
-          authLoading: false,
-        }));
-      } else {
-        console.log("user is not authenticated");
-        set(() => ({
-          user: null,
-          userData: null,
-          authLoading: false,
-        }));
-      }
-    });
+  setAuthState: (user, userData, authLoading) => {
+    set(() => ({
+      user: user,
+      userData: userData,
+      authLoading: authLoading,
+    }));
   },
   signUp: async (email, pw, name, userType) => {
     try {
@@ -130,5 +116,17 @@ const useAuthState = create<AuthStateType>((set) => ({
     }
   },
 }));
+
+auth.onAuthStateChanged(async (user) => {
+  const setAuthState = useAuthState.getState().setAuthState
+  if (user) {
+    console.log("user is authenticated");
+    const docRef = await getDoc(doc(db, "users", user.uid));
+    setAuthState(user, docRef.data() as UserSchema | TutorUserSchema, false)
+  } else {
+    console.log("user is not authenticated");
+    setAuthState(null,null, false)
+  }
+})
 
 export default useAuthState;

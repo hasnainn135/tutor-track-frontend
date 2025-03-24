@@ -8,7 +8,7 @@ import { MdLogout } from "react-icons/md";
 import { FaRegCircleUser } from "react-icons/fa6";
 import { IoAnalytics } from "react-icons/io5";
 import { BsGrid1X2 } from "react-icons/bs";
-import { useUsers } from "@/hooks/useUsers";
+import useAuthState from "@/states/AuthState";
 
 type StudentSidebarProps = {
   children: React.ReactNode;
@@ -16,7 +16,14 @@ type StudentSidebarProps = {
 
 const StudentSidebar: FC<StudentSidebarProps> = ({ children }) => {
   const router = useRouter();
-  const { userType } = useUsers();
+  const {user} = useAuthState()
+
+  let userType;
+  if (user) { 
+    userType = "tutor";
+  } else { 
+    userType = "student";
+  }
 
   // Define pages where the sidebar should be shown
   const pagesWithSidebar = [

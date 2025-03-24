@@ -33,8 +33,6 @@ const Login = () => {
     }catch (e:any){
       setError(e.message);
     }
-
-
   };
 
   

@@ -103,15 +103,11 @@ const StudentSettings = () => {
                       }</div>
                   </>
                 )
-                
               })
             }
-
           </div>
           <button type="submit" className="bg-[#169962] border border-[#bababa] rounded-md mt-4 text-white py-1 h-9">Save Changes</button>
           <button type="submit" className="border border-[#169962] rounded-md mt-4 text-[#169962] py-1 font-semibold h-9">Cancel</button>
-
-
         </div>
       </form>
     </div>
