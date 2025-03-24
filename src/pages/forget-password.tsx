@@ -5,10 +5,14 @@ import laptopAuthImage from "@/assets/laptopAuthImage.png";
 import Link from "next/link";
 import { auth } from "@/firebase/firebase";
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
+import { useRouter } from 'next/router'
+
 
 
 
 const ForgetPassword = () => {
+  const router = useRouter()
+
   const [error, setError] = useState<string>("");
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -18,8 +22,14 @@ const ForgetPassword = () => {
     const formData = new FormData(e.currentTarget);
     const email = formData.get("alt_email") as string;
 
+    if(!email){
+      setError("Please enter an email");
+      return;
+    }
+
     try{
       await sendPasswordResetEmail(auth,email)
+      router.push("/forget-password-success")
     }catch (e:any){
       setError(e.message);
     }

@@ -1,6 +1,8 @@
 import React from 'react'
 import Image from "next/image";
 import laptopAuthImage from "@/assets/laptopAuthImage.png"
+import Link from "next/link";
+
 
 const forget_password_success = () => {
   return (
@@ -10,7 +12,7 @@ const forget_password_success = () => {
         <div className="bg-white w-full lg:w-1/2 h-screen flex flex-col justify-center items-center">
           <h1 className='font-bold text-center text-4xl sm:text-6xl mb-12'>Forgot Your Password?</h1>
           <p className='text-lg text-center'> We have sent an email containing the link to rest your password to your email account.</p>
-          <button type="submit" className="bg-[#169962] border w-50 sm:w-80 border-[#bababa] rounded-md mt-4 text-white py-1">Back to Login</button>
+          <Link href="/login" type="submit" className="bg-[#169962] border w-50 sm:w-80 border-[#bababa] rounded-md mt-4 text-white py-1 text-center">Back to Login</Link>
           </div>
 
         <div className="bg-green-950 w-1/2 h-screen flex-col text-white justify-center items-center overflow-hidden hidden lg:flex relative">
