@@ -1,34 +1,58 @@
 import { create } from "zustand";
 import {
-  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signOut,
-  updateProfile,
   sendEmailVerification,
-  User
+  signInWithEmailAndPassword,
+  signOut,
+  Unsubscribe,
+  updateProfile,
+  User,
 } from "firebase/auth";
 import { auth, db } from "@/firebase/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { TutorUserSchema, UserSchema } from "@/types/firebase";
 
-const useAuthState = create((set) => ({
+interface AuthStateType {
+  user: User | null;
+  userData: UserSchema | TutorUserSchema | null;
+  authLoading: boolean;
+  setUser: (user: User) => void;
+  setUserData: (user: UserSchema | TutorUserSchema) => void;
+  setAuthLoading: (authLoading: boolean) => void;
+  initAuth: () => Unsubscribe;
+  signUp: (
+    email: string,
+    pw: string,
+    name: string,
+    userType: string,
+  ) => Promise<void>;
+  signIn: (
+    email: string,
+    pw: string,
+  ) => Promise<{ user: User; userData: UserSchema | TutorUserSchema }>;
+  signOut: () => Promise<void>;
+}
+
+const useAuthState = create<AuthStateType>((set) => ({
   user: null,
   userData: null,
   authLoading: true,
-  setUser: (user:User) => set(() => ({ user: user })),
-  setUserData: (userData:any) => set(() => ({ userData: userData })),
-  setAuthLoading: (authLoading:boolean) => set(() => ({ authLoading: authLoading })),
+  setUser: (user: User) => set(() => ({ user: user })),
+  setUserData: (userData) => set(() => ({ userData: userData })),
+  setAuthLoading: (authLoading) => set(() => ({ authLoading: authLoading })),
   initAuth: () => {
-    const unsub = auth.onAuthStateChanged(async (user) => {
+    console.log("oi hui");
+    return auth.onAuthStateChanged(async (user) => {
       if (user) {
-        // console.log("user is authenticated");
+        console.log("user is authenticated");
         const docRef = await getDoc(doc(db, "users", user.uid));
         set(() => ({
           user: user,
-          userData: docRef.data(),
+          userData: docRef.data() as UserSchema | TutorUserSchema,
           authLoading: false,
         }));
       } else {
-        // console.log("user is not authenticated");
+        console.log("user is not authenticated");
         set(() => ({
           user: null,
           userData: null,
@@ -36,8 +60,6 @@ const useAuthState = create((set) => ({
         }));
       }
     });
-
-    return unsub;
   },
   signUp: async (email, pw, name, userType) => {
     try {
@@ -47,15 +69,15 @@ const useAuthState = create((set) => ({
       const userCreds = await createUserWithEmailAndPassword(auth, email, pw);
 
       //update user auth information
-      await updateProfile(auth.currentUser, {
+      await updateProfile(userCreds.user, {
         displayName: name,
       });
 
       //send email verification
-      await sendEmailVerification(auth.currentUser);
+      await sendEmailVerification(userCreds.user);
 
       //set user role
-      let role;
+      let role: string | undefined;
       if (userType === "tutor") {
         role = process.env.NEXT_PUBLIC_TEACHER_ROLE_ID;
       } else {
@@ -71,10 +93,7 @@ const useAuthState = create((set) => ({
         photoURL: null,
         role_id: role,
       });
-
       set(() => ({ authLoading: false }));
-
-      // set(() => ({ user: userCreds.user, userData: }));
     } catch (e) {
       console.error("error signing up:", e);
       set(() => ({ authLoading: false }));
@@ -87,12 +106,13 @@ const useAuthState = create((set) => ({
       const docRef = await getDoc(doc(db, "users", userCreds.user.uid));
       set(() => ({
         user: userCreds.user,
-        userData: docRef.data(),
+        userData: docRef.data() as UserSchema | TutorUserSchema,
         authLoading: false,
       }));
-      console.log("USER ON FC= ", userCreds.user);
-      console.log("USERDATA ON FC= ", docRef.data());
-      return { user: userCreds.user, userData: docRef.data() };
+      return {
+        user: userCreds.user,
+        userData: docRef.data() as UserSchema | TutorUserSchema,
+      };
     } catch (e) {
       console.error("error signing in:", e);
       set(() => ({ authLoading: false }));
