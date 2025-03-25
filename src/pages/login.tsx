@@ -1,17 +1,15 @@
-import AuthLayout from "@/layouts/AuthLayout";
 import React, { FormEvent, useState } from "react";
 import Image from "next/image";
-import laptopAuthImage from "@/assets/laptopAuthImage.png";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/firebase/firebase";
 import Link from "next/link";
-import { useRouter } from 'next/router'
-
-
+import laptopAuthImage from "@/assets/laptopAuthImage.png";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/firebase/firebase";
+import { useRouter } from 'next/router';
+import { MdArrowBackIos } from "react-icons/md";
 
 const Login = () => {
 
-  const router = useRouter()
+  const router = useRouter();
   const [error, setError] = useState<string>("");
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,18 +26,21 @@ const Login = () => {
     }
 
     try {
-      const user = await signInWithEmailAndPassword(auth, email, password)
-      router.push("/")
+      const user = await signInWithEmailAndPassword(auth, email, password);
+      router.push("/");
     }catch (e:any){
       setError(e.message);
     }
   };
 
-  
-
   return (
     <>
-    <div className="w-full h-screen flex flex-row">
+    <div className="relative w-full h-screen flex flex-row">
+
+        <Link href="/" className="absolute top-5 left-5">
+            <MdArrowBackIos className="h-8 w-auto text-primary_green hover:h-10 transition-all duration-200" />
+        </Link>
+
         <div className="bg-white w-full lg:w-1/2 h-screen flex flex-col justify-center items-center">
         <h1 className="font-bold text-center text-6xl mb-12">Login</h1>
         <form  

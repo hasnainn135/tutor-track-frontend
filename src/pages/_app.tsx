@@ -1,13 +1,12 @@
 import StudentSidebar from "@/components/StudentSidebar";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
-import Navbar from "@/components/Navbar";
+import NavbarWrapper from "@/components/NavbarWrapper";
 
 export default function App({ Component, pageProps }: AppProps) {
-
   return (
       <StudentSidebar>
-        <Navbar/>
+        <NavbarWrapper/>
         <Component {...pageProps} />
       </StudentSidebar>
   );

@@ -2,8 +2,8 @@ interface FirestoreTimestamp {
     seconds: number;
     nanoseconds: number;
 }
-  
-  export interface UserSchema {
+
+export interface UserSchema {
     uid: string;
     full_name: string;
     role_id: string;
@@ -11,12 +11,12 @@ interface FirestoreTimestamp {
     email: string;
     photoURL: string;
     timestamp: FirestoreTimestamp;
-  }
-  
-  export interface TutorUserSchema extends UserSchema {
+}
+
+export interface TutorUserSchema extends UserSchema {
     highest_education: string;
     selected_subs: string[];
-    tutor_resume: string;
-  }
+    tutor_resume: string;
+}
   
   

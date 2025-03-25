@@ -1,18 +1,14 @@
-import AuthLayout from "@/layouts/AuthLayout";
 import React, { FormEvent, useState } from "react";
 import Image from "next/image";
 import laptopAuthImage from "@/assets/laptopAuthImage.png";
 import Link from "next/link";
 import { auth } from "@/firebase/firebase";
-import { getAuth, sendPasswordResetEmail } from "firebase/auth";
-import { useRouter } from 'next/router'
-
-
-
+import { sendPasswordResetEmail } from "firebase/auth";
+import { useRouter } from 'next/router';
+import {MdArrowBackIos} from "react-icons/md";
 
 const ForgetPassword = () => {
   const router = useRouter()
-
   const [error, setError] = useState<string>("");
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -37,7 +33,12 @@ const ForgetPassword = () => {
   }
   return (
     <>
-      <div className="w-full h-screen flex flex-row">
+      <div className="relative w-full h-screen flex flex-row">
+
+        <Link href="/login" className="absolute top-5 left-5">
+          <MdArrowBackIos className="h-8 w-auto text-primary_green hover:h-10 transition-all duration-200"/>
+        </Link>
+
         <div className="bg-white w-full lg:w-1/2 h-screen flex flex-col justify-center items-center">
         <h1 className="font-bold text-center text-4xl sm:text-6xl mb-12" >Forgot Your Password?</h1>
         <form onSubmit={handleSubmit} className="flex flex-col">

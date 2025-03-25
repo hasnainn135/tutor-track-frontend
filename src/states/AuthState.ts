@@ -4,7 +4,6 @@ import {
   sendEmailVerification,
   signInWithEmailAndPassword,
   signOut,
-  Unsubscribe,
   updateProfile,
   User,
 } from "firebase/auth";
