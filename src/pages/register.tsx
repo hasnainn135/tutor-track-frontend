@@ -2,7 +2,7 @@ import React, { FormEvent } from 'react'
 import Image from "next/image";
 import laptopAuthImage from "@/assets/laptopAuthImage.png";
 import { useState } from 'react';
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
 import Link from "next/link";
 import { useRouter } from 'next/router'
@@ -19,7 +19,7 @@ const register = () => {
       console.log("function called");
 
       const formData = new FormData(e.currentTarget);
-      const userName = formData.get("username") as string;
+      const fullname = formData.get("fullname") as string;
       const email = formData.get("email") as string;
       const password = formData.get("password") as string;
       const confirmPassword = formData.get("conf_password") as string;
@@ -30,14 +30,19 @@ const register = () => {
         return;
       }
 
-      if (!userName || !email || !password || !confirmPassword) {
+      if (!fullname || !email || !password || !confirmPassword) {
         console.log("One of the field is empty");
         setError("One of the field is empty");
         return;
       }
 
+      const data = {
+        "displayName": fullname
+      }
+
       try {
-        const user = await createUserWithEmailAndPassword(auth, email, password);
+        const userCreds = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCreds.user, data)
         router.push("/")
       } catch (e:any) {
         setError(e.message);
@@ -61,8 +66,8 @@ const register = () => {
               className="w-full sm:w-[30rem] mt-3 space-y-2">
                 <div className='flex flex-row w-full'>
                     <div className='flex flex-col mr-2 w-full'>
-                    <label htmlFor="username">User name <span className='text-red-600'>*</span></label>
-                    <input type="text" id='username' name='username' className='border border-[#bababa]  rounded-md mt-2 h-9 ' required/>
+                    <label htmlFor="fullname">Full Name <span className='text-red-600'>*</span></label>
+                    <input type="text" id='fullname' name='fullname' className='border border-[#bababa]  rounded-md mt-2 h-9 ' required/>
                     </div>
                     <div className='flex flex-col w-full'>
                     <label htmlFor="email">Email <span className='text-black'>*</span></label>

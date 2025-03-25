@@ -1,10 +1,20 @@
 import React from "react";
 import Image from "next/image";
 import mh from "@/assets/mh.jpg";
-
-
+import useAuthState from "@/states/AuthState";
 
 const StudentSettings = () => {
+
+  const {user} = useAuthState();
+
+  console.log("aray ppechay tu dekho = ", user);
+
+  if (!user) {
+    return (
+      <></>
+    )
+  }
+
   return(
     <div className="flex justify-center">
       <form className="flex flex-col w-[40rem] h-screen mt-2">
@@ -24,10 +34,11 @@ const StudentSettings = () => {
              type="text"
              id="displayName"
              name="displayName"
+             value={user.displayName? user.displayName: undefined}
             className="border border-[#bababa] rounded-md h-9 w-full"/>
             <div>
               <p>Email</p>
-              <p>mhusnain123@gmail.com</p>
+              <p>{user.email}</p>
             </div>
           </div>
         </div>

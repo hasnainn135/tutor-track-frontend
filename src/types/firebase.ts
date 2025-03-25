@@ -1,7 +1,7 @@
 interface FirestoreTimestamp {
     seconds: number;
     nanoseconds: number;
-  }
+}
   
   export interface UserSchema {
     uid: string;
