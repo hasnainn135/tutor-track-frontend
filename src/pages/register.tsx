@@ -80,7 +80,6 @@ const register = () => {
                                    className='border border-[#bababa]  rounded-md mt-2 h-9' required/>
                         </div>
                     </div>
-
                     <div className='flex flex-row pb-2'>
                         <div className='flex flex-col mr-2 w-full'>
                             <label htmlFor="password">Password <span className='text-red-600'>*</span></label>
@@ -102,8 +101,6 @@ const register = () => {
                     <p className='text-red'>{error}</p>
                 </form>
             </div>
-
-
             <div
                 className="bg-green-950 w-1/2 h-screen flex-col text-white justify-center items-center overflow-hidden hidden lg:flex relative">
 
@@ -111,14 +108,11 @@ const register = () => {
                     <p className='text-center'>Welcome to</p>
                     <h1 className='font-bold lg:text-4xl xl:text-6xl '>TutorTrack</h1>
                 </div>
-
-
                 <Image
                     src={laptopAuthImage}
                     alt="Laptop"
                     className='absolute lg:h-[22rem] xl:h-[27rem]  -right-24 2xl:mt-10 xl:translate-y-12 2xl:translate-y-0 w-auto '
                 />
-
             </div>
         </div>
     )

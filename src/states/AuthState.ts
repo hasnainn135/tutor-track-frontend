@@ -9,16 +9,16 @@ import {
 } from "firebase/auth";
 import { auth, db } from "@/firebase/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { TutorUserSchema, UserSchema } from "@/types/firebase";
+import { TutorSchema, StudentSchema } from "@/types/firebase";
 
 interface AuthStateType {
   user: User | null;
-  userData: UserSchema | TutorUserSchema | null;
+  userData: StudentSchema | TutorSchema | null;
   authLoading: boolean;
   setUser: (user: User) => void;
-  setUserData: (userData: UserSchema | TutorUserSchema) => void;
+  setUserData: (userData: StudentSchema | TutorSchema) => void;
   setAuthLoading: (authLoading: boolean) => void;
-  setAuthState: (user: User | null, userData: UserSchema | TutorUserSchema | null, authLoading: boolean) => void;
+  setAuthState: (user: User | null, userData: StudentSchema | TutorSchema | null, authLoading: boolean) => void;
   signUp: (
     email: string,
     pw: string,
@@ -28,7 +28,7 @@ interface AuthStateType {
   signIn: (
     email: string,
     pw: string,
-  ) => Promise<{ user: User; userData: UserSchema | TutorUserSchema }>;
+  ) => Promise<{ user: User; userData: StudentSchema | TutorSchema }>;
   signOut: () => Promise<void>;
 }
 
@@ -91,12 +91,12 @@ const useAuthState = create<AuthStateType>((set) => ({
       const docRef = await getDoc(doc(db, "users", userCreds.user.uid));
       set(() => ({
         user: userCreds.user,
-        userData: docRef.data() as UserSchema | TutorUserSchema,
+        userData: docRef.data() as StudentSchema | TutorSchema,
         authLoading: false,
       }));
       return {
         user: userCreds.user,
-        userData: docRef.data() as UserSchema | TutorUserSchema,
+        userData: docRef.data() as StudentSchema | TutorSchema,
       };
     } catch (e) {
       console.error("error signing in:", e);
@@ -121,7 +121,7 @@ auth.onAuthStateChanged(async (user) => {
   if (user) {
     console.log("user is authenticated");
     const docRef = await getDoc(doc(db, "users", user.uid));
-    setAuthState(user, docRef.data() as UserSchema | TutorUserSchema, false)
+    setAuthState(user, docRef.data() as StudentSchema | TutorSchema, false)
   } else {
     console.log("user is not authenticated");
     setAuthState(null,null, false)
