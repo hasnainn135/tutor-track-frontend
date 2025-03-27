@@ -1,12 +1,11 @@
-import React, { FormEvent } from 'react';
-import { useState } from 'react';
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "@/firebase/firebase";
-import { useRouter } from 'next/router';
-import { MdArrowBackIos } from "react-icons/md";
+import React, {FormEvent} from 'react';
+import {useState} from 'react';
+import {useRouter} from 'next/router';
+import {MdArrowBackIos} from "react-icons/md";
 import Image from "next/image";
 import laptopAuthImage from "@/assets/laptopAuthImage.png";
 import Link from "next/link";
+import useAuthState from "@/states/AuthState";
 
 type userRoleType = "student" | "tutor";
 
@@ -14,6 +13,7 @@ const register = () => {
     const [selectedRole, setSelectedRole] = useState<userRoleType>("student");
     const [error, setError] = useState<string>("");
     const router = useRouter()
+    const {signUp, signOut} = useAuthState();
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -35,16 +35,15 @@ const register = () => {
             setError("One of the field is empty");
             return;
         }
-        const data = {
-            "displayName": fullname
-        }
+
         try {
-            const userCreds = await createUserWithEmailAndPassword(auth, email, password);
-            await updateProfile(userCreds.user, data)
-            router.push("/")
+            await signUp(email, password, fullname, selectedRole);
+            await signOut();
+            router.push("/verify-your-email");
         } catch (e: any) {
             setError(e.message);
         }
+
     };
 
     return (
