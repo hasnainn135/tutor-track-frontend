@@ -24,9 +24,9 @@ const ForgetPassword = () => {
     }
 
     try{
-      await sendPasswordResetEmail(auth,email)
+      await sendPasswordResetEmail(auth, email)
       router.push("/forget-password-success")
-    }catch (e:any){
+    } catch (e:any){
       setError(e.message);
     }
 

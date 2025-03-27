@@ -65,7 +65,7 @@ const useAuthState = create<AuthStateType>((set) => ({
             set(() => ({authLoading: false}));
         } catch (e: any) {
             set(() => ({authLoading: false}));
-            throw new Error("error signing up:", e.message);
+            throw e;
         }
     },
     signIn: async (email, pw) => {
@@ -83,9 +83,8 @@ const useAuthState = create<AuthStateType>((set) => ({
                 userData: docRef.data() as StudentSchema | TutorSchema,
             };
         } catch (e: any) {
-            console.error("error signing in:", e);
             set(() => ({authLoading: false}));
-            throw new Error("error signing in: ", e.message);
+            throw e;
         }
     },
     signOut: async () => {
@@ -95,7 +94,7 @@ const useAuthState = create<AuthStateType>((set) => ({
             set(() => ({user: null, userData: null, authLoading: false}));
         } catch (e: any) {
             set(() => ({authLoading: false}));
-            throw new Error("error signing out: ", e.message);
+            throw e;
         }
     },
     sendEmailVerification: async (user: User) => {
@@ -105,7 +104,7 @@ const useAuthState = create<AuthStateType>((set) => ({
             set(() => ({user: null, userData: null, authLoading: false}));
         } catch (e: any) {
             set(() => ({authLoading: false}));
-            throw new Error("error sending verification email:", e.message);
+            throw e;
         }
     },
 }));
