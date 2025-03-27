@@ -25,7 +25,7 @@ const ForgetPassword = () => {
 
     try{
       await sendPasswordResetEmail(auth, email)
-      router.push("/forget-password-success")
+      router.push("/auth/forget-password-success")
     } catch (e:any){
       setError(e.message);
     }
@@ -35,7 +35,7 @@ const ForgetPassword = () => {
     <>
       <div className="relative w-full h-screen flex flex-row">
 
-        <Link href="/login" className="absolute top-5 left-5">
+        <Link href="/auth/login" className="absolute top-5 left-5">
           <MdArrowBackIos className="h-8 w-auto text-primary_green hover:h-10 transition-all duration-200"/>
         </Link>
 
@@ -52,7 +52,7 @@ const ForgetPassword = () => {
           <button type="submit" className="bg-[#169962] border sm:w-80 border-[#bababa] rounded-md mt-4 text-white py-1">Send reset link</button>
 
         </form>
-        <Link href="/login" className="text-[#169962] mt-4">Back to login</Link>
+        <Link href="/auth/login" className="text-[#169962] mt-4">Back to login</Link>
         <p className="text-red">{error}</p>
         
         </div>

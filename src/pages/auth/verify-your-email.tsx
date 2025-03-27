@@ -11,7 +11,7 @@ const VerifyYourEmail = () => {
                     <h1 className='font-bold text-center text-4xl sm:text-6xl mb-12'>Verify Your Email</h1>
                     <p className='text-base sm:text-lg text-centre'>We have sent an email to you for email
                         verification.</p>
-                    <Link href="/login" className="text-[#169962] border-2 border-[#169962] rounded-md mt-4 p-1 w-36 text-center font-semibold">Back
+                    <Link href="/auth/login" className="text-[#169962] border-2 border-[#169962] rounded-md mt-4 p-1 w-36 text-center font-semibold">Back
                         to login</Link>
                 </div>
                 <div

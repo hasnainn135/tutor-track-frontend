@@ -39,7 +39,7 @@ const register = () => {
         try {
             await signUp(email, password, fullname, selectedRole);
             await signOut();
-            router.push("/verify-your-email");
+            router.push("/auth/verify-your-email");
         } catch (e: any) {
             setError(e.message);
         }
@@ -49,7 +49,7 @@ const register = () => {
     return (
         <div className="relative w-full h-screen flex flex-row">
 
-            <Link href="/login" className="absolute top-5 left-5">
+            <Link href="/auth/login" className="absolute top-5 left-5">
                 <MdArrowBackIos className="h-8 w-auto text-primary_green hover:h-10 transition-all duration-200"/>
             </Link>
 
@@ -96,7 +96,7 @@ const register = () => {
                             className="bg-[#169962] border w-full h-9 border-[#bababa] rounded-md text-white py-1">Register
                     </button>
 
-                    <Link href="/login" className='text-green-700 text-center block'>Already have an Account?</Link>
+                    <Link href="/auth/login" className='text-green-700 text-center block'>Already have an Account?</Link>
                     <p className='text-red'>{error}</p>
                 </form>
             </div>

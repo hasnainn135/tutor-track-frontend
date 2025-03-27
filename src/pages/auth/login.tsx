@@ -29,7 +29,7 @@ const Login = () => {
             const {user, userData} = await signIn(email, password);
             if (!user.emailVerified) {
                 await signOut()
-                router.push("/verify-your-email");
+                router.push("/auth/verify-your-email");
             }
             if (userData.role === "student") router.push("/student/dashboard");
             else router.push("/tutor/dashboard");
@@ -65,13 +65,13 @@ const Login = () => {
                             name="password"
                             className="border border-[#bababa] w-60 sm:w-80 rounded-md h-9"
                         />
-                        <Link href="/forget-password" className="text-[#169962] text-right">Forgot Password?</Link>
+                        <Link href="/auth/forget-password" className="text-[#169962] text-right">Forgot Password?</Link>
                         <button type="submit"
                                 className="bg-[#169962] border w-60 sm:w-80 border-[#bababa] rounded-md mt-4 text-white py-1">Log
                             In
                         </button>
                     </form>
-                    <Link href="/register" className="text-[#169962] mt-4">Create an Account</Link>
+                    <Link href="/auth/register" className="text-[#169962] mt-4">Create an Account</Link>
                     <p className="text-red">{error}</p>
                 </div>
                 <div
