@@ -1,4 +1,3 @@
-
 import { Day } from "date-fns";
 
 export type TutorType = {
@@ -12,12 +11,13 @@ export type TutorType = {
   country: string;
   state: string;
   city: string;
-  
+
   rating: number;
   total_students_taught: number;
   hourly_rate: string;
 
   offeredSubjects: SubjectLevelType[];
+  reviews: ReviewType[] | null;
 
   timeSlots: string[];
   sessions: string[] | undefined;
@@ -25,9 +25,18 @@ export type TutorType = {
 };
 
 export type SubjectLevelType = {
-  level:string;
-  subjects:string[];
-}
+  level: string;
+  subjects: string[];
+};
+
+export type ReviewType = {
+  id: string;
+  reviewerName: string;
+  reviewerID: string;
+  rating: number;
+  date: string;
+  content: string;
+};
 
 export type StudentType = {
   id: string;
