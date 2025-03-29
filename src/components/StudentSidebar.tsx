@@ -35,6 +35,7 @@ const StudentSidebar: FC<StudentSidebarProps> = ({ children }) => {
     "/tutor/sessions",
     "/tutor/my-students",
     "/tutor/analytics",
+    "/tutor/my-profile",
     //chat
     "/chat",
   ];
@@ -96,9 +97,7 @@ const StudentSidebar: FC<StudentSidebarProps> = ({ children }) => {
   return (
     <div className={`${showSidebar ? "flex bg-[#E6E6E6]" : ""} relative`}>
       {/* SOONER */}
-      <div className="absolute bottom-5 right-5">
-        <TimerSooner />
-      </div>
+      <div className="absolute bottom-5 right-5">{/* <TimerSooner /> */}</div>
       {showSidebar && (
         <aside className="bg-dark_green text-white min-h-svh relative w-80">
           <div className="h-svh px-7 py-9 flex flex-col gap-9 w-80 sticky top-0">

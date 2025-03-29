@@ -5,10 +5,29 @@ export type TutorType = {
   id: string;
   name: string;
   pfp: string;
+  level_of_education: string;
+  institue: string;
+  teaching_experience: string;
+  about: string;
+  country: string;
+  state: string;
+  city: string;
+  
+  rating: number;
+  total_students_taught: number;
+  hourly_rate: string;
+
+  offeredSubjects: SubjectLevelType[];
+
   timeSlots: string[];
   sessions: string[] | undefined;
   booked_students: string[] | undefined;
 };
+
+export type SubjectLevelType = {
+  level:string;
+  subjects:string[];
+}
 
 export type StudentType = {
   id: string;
