@@ -228,7 +228,8 @@ const TutorSessions = () => {
           {/* FILTERS */}
           <form
             action="#"
-            className="pt-4 flex flex-col items-center gap-3 w-full">
+            className="pt-4 flex flex-col items-center gap-3 w-full"
+          >
             {/* Tutor */}
             <div className="flex flex-col gap-1 w-full">
               <label htmlFor="tutor" className="text-sm">
@@ -238,7 +239,8 @@ const TutorSessions = () => {
                 defaultValue="All_Student"
                 onValueChange={(value) => {
                   handleFilterChanges("student_id", value);
-                }}>
+                }}
+              >
                 <SelectTrigger id="tutor" className="w-full ">
                   <SelectValue placeholder="Select Tutor" />
                 </SelectTrigger>
@@ -290,7 +292,8 @@ const TutorSessions = () => {
                   return (
                     <div
                       key={date}
-                      className="flex items-center gap-2 bg-primary_green py-1.5 px-3 rounded-md text-white">
+                      className="flex items-center gap-2 bg-primary_green py-1.5 px-3 rounded-md text-white"
+                    >
                       <p>{date}</p>
                       <button
                         className="font-semibold mt-[1px] hover:text-rose-500"
@@ -299,7 +302,8 @@ const TutorSessions = () => {
 
                           removeDates.splice(removeDates.indexOf(date), 1);
                           handleFilterChanges("dates", removeDates);
-                        }}>
+                        }}
+                      >
                         &#10005;
                       </button>
                     </div>
@@ -321,7 +325,8 @@ const TutorSessions = () => {
                     addDay.push(value);
                     handleFilterChanges("days", addDay);
                   }
-                }}>
+                }}
+              >
                 <SelectTrigger id="days" className="w-full">
                   <SelectValue placeholder="Select Day" />
                 </SelectTrigger>
@@ -349,7 +354,8 @@ const TutorSessions = () => {
                   return (
                     <div
                       key={day}
-                      className="flex items-center gap-2 bg-primary_green py-1.5 px-3 rounded-md text-white">
+                      className="flex items-center gap-2 bg-primary_green py-1.5 px-3 rounded-md text-white"
+                    >
                       <p>{day}</p>
                       <button
                         className="font-semibold mt-[1px] hover:text-rose-500"
@@ -358,7 +364,8 @@ const TutorSessions = () => {
 
                           removeDay.splice(removeDay.indexOf(day), 1);
                           handleFilterChanges("days", removeDay);
-                        }}>
+                        }}
+                      >
                         &#10005;
                       </button>
                     </div>
@@ -430,7 +437,8 @@ const SessionTabs = ({
           activeTab === 1
             ? "border-primary_green font-semibold bg-light_green"
             : ""
-        }`}>
+        }`}
+      >
         Upcoming
       </button>
       <button
@@ -439,7 +447,8 @@ const SessionTabs = ({
           activeTab === 2
             ? "border-primary_green font-semibold bg-light_green"
             : ""
-        }`}>
+        }`}
+      >
         Previous
       </button>
       <button
@@ -448,7 +457,8 @@ const SessionTabs = ({
           activeTab === 3
             ? "border-primary_green font-semibold bg-light_green"
             : ""
-        }`}>
+        }`}
+      >
         Canceled
       </button>
     </div>

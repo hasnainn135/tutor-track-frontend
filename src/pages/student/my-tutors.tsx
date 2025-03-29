@@ -12,17 +12,19 @@ const MyTutors = () => {
       if (!loggedInStudent) return;
 
       try {
-        const tutors = await Promise.all(
-          loggedInStudent.booked_tutors.map(async (tutorId) => {
-            return await getTutorById(tutorId.tutor_id);
-          })
-        );
+        if (loggedInStudent.booked_tutors) {
+          const tutors = await Promise.all(
+            loggedInStudent.booked_tutors.map(async (tutorId) => {
+              return await getTutorById(tutorId.tutor_id);
+            })
+          );
 
-        // Filter out null values
-        const validTutors = tutors.filter(
-          (tutor): tutor is TutorType => tutor !== null
-        );
-        setBookedTutors(validTutors);
+          // Filter out null values
+          const validTutors = tutors.filter(
+            (tutor): tutor is TutorType => tutor !== null
+          );
+          setBookedTutors(validTutors);
+        }
       } catch (e) {
         console.error("Error fetching Tutor Data:", e);
       }

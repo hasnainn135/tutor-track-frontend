@@ -1,5 +1,12 @@
-import { createContext, useContext, useEffect, useState } from "react";
 import { StudentType, TutorType } from "@/types/usertypes";
+import {
+  Dispatch,
+  SetStateAction,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 const stdID = "stu_1";
 const tutorID = "t3";
@@ -12,6 +19,8 @@ type UsersContextType = {
   loggedInTutor: TutorType | null;
   loading: boolean;
   error: string | null;
+  time: string;
+  setTime: Dispatch<SetStateAction<string>>;
   getTutorById: (id: string) => Promise<TutorType | null>;
   getStudentById: (id: string) => Promise<StudentType | null>;
   fetchTutors: () => Promise<void>;
@@ -36,6 +45,26 @@ export const UsersProvider = ({
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Timer state
+  const [time, setTime] = useState<string>("00 : 00 : 00");
+
+  // Retrieve saved time from localStorage if it exists
+  useEffect(() => {
+    const savedTime = localStorage.getItem("timerTime");
+    if (savedTime) {
+      setTime(savedTime); // Set the saved time from localStorage
+      console.log("Save TIME", savedTime);
+    }
+  }, []);
+
+  // Save time to localStorage whenever it changes
+  useEffect(() => {
+    if (time) {
+      localStorage.setItem("timerTime", time); // Persist the time to localStorage
+      console.log("TIME");
+    }
+  }, [time]);
 
   const fetchTutors = async () => {
     try {
@@ -109,7 +138,10 @@ export const UsersProvider = ({
         getStudentById,
         fetchTutors,
         fetchStudents,
-      }}>
+        time,
+        setTime,
+      }}
+    >
       {children}
     </UsersContext.Provider>
   );
