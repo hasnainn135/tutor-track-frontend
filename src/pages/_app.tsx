@@ -5,7 +5,7 @@ import type { AppProps } from "next/app";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <UsersProvider userType="tutor">
+    <UsersProvider userType="student">
       <StudentSidebar>
         <Component {...pageProps} />
       </StudentSidebar>
