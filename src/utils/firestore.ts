@@ -1,9 +1,9 @@
-import {collection, getDocs, query, where} from "@firebase/firestore";
+import {collection, DocumentData, getDocs, Query, query, where} from "@firebase/firestore";
 import {db} from "@/firebase/firebase";
-import {doc, getDoc} from "firebase/firestore";
-import {StudentSchema, TutorSchema} from "@/types/firebase";
+import {doc, getDoc, setDoc, updateDoc} from "firebase/firestore";
+import {Session, SessionNotes, StudentSchema, TutorSchema} from "@/types/firebase";
 
-const getTutors = async ():Promise<TutorSchema[]> => {
+const getTutors = async (): Promise<TutorSchema[]> => {
     try {
         const q = query(collection(db, "tutors"));
         const qs = await getDocs(q);
@@ -14,9 +14,9 @@ const getTutors = async ():Promise<TutorSchema[]> => {
 }
 
 
-const getMyTutors = async (studentID: string):Promise<TutorSchema[]> => {
+const getMyTutors = async (studentId: string): Promise<TutorSchema[]> => {
     try {
-        const q = query(collection(db, "tutors"), where("myStudentsID", "array-contains", studentID));
+        const q = query(collection(db, "tutors"), where("myStudentsId", "array-contains", studentId));
         const qs = await getDocs(q);
         return qs.docs.map((doc) => doc.data() as TutorSchema);
     } catch (e) {
@@ -35,9 +35,9 @@ const getTutorById = async (tutorId: string): Promise<TutorSchema> => {
 }
 
 
-const getMyStudents = async (tutorID: string): Promise<StudentSchema[]> => {
+const getMyStudents = async (tutorId: string): Promise<StudentSchema[]> => {
     try {
-        const q = query(collection(db, "students"), where("myTutorsID", "array-contains", tutorID));
+        const q = query(collection(db, "students"), where("myTutorsId", "array-contains", tutorId));
         const qs = await getDocs(q);
         return qs.docs.map((doc) => doc.data() as StudentSchema);
     } catch (e) {
@@ -45,32 +45,115 @@ const getMyStudents = async (tutorID: string): Promise<StudentSchema[]> => {
     }
 }
 
-const getStudentById = async (studentID: string): Promise<StudentSchema> => {
+const getStudentById = async (studentId: string): Promise<StudentSchema> => {
     try {
-        const ds = await getDoc(doc(db, "students", studentID));
+        const ds = await getDoc(doc(db, "students", studentId));
         return ds.data() as StudentSchema;
     } catch (e) {
         throw e;
     }
 }
 
-const createSession = async (studentID: string, tutorID: string):Promise<void> => {
+const createSession = async (tutorId: string, studentId: string, duration: string, startTime: string, date: Date, additionalNotes: string): Promise<void> => {
+    try {
+        const combinedId: string = tutorId + studentId;
+        const data: Session = {
+            id: combinedId,
+            studentId: studentId,
+            tutorId: tutorId,
+            monthYear: `${date.getMonth() + 1}-${date.getFullYear()}`,
+            duration: duration,
+            status: "incomplete",
+            bookingStartTime: startTime,
+            bookingEndTime: duration,
+            actualStartTime: null,
+            actualEndTime: null,
+            actualDuration: null,
+            totalPauseTime: null,
+            isStudentAbsent: false,
+            isTutorAbsent: false,
+            additionalNotes: additionalNotes,
+            createdAt: new Date(),
+            sessionNotes: [],
+        };
+        const docRef = doc(db, "sessions", combinedId)
+        await setDoc(docRef, data);
+    } catch (e) {
+        throw e;
+    }
 }
 
-const getMySessions = async () => {
+const addSessionNote = async (sessionId: string, senderId: string, receiverId: string, content: string): Promise<void> => {
+    try {
+        const collRef = collection(db, "sessions", sessionId, "sessionNotes");
+        const docRef = doc(collRef);
+        const noteId = docRef.id;
+        const note: SessionNotes = {
+            id: noteId,
+            senderId,
+            receiverId,
+            content,
+            timestamp: new Date(),
+        }
+        await setDoc(docRef, note);
+    } catch (e) {
+        throw e;
+    }
 }
 
-const cancelSession = async () => {
+const getSessions = async (userId: string, roleType: "student" | "tutor"): Promise<Session[]> => {
+    try {
+        let q: Query<DocumentData, DocumentData>;
+        if (roleType === "student") {
+            q = query(collection(db, "sessions"), where("studentId", "==", userId));
+        } else {
+            q = query(collection(db, "sessions"), where("tutorId", "==", userId));
+        }
+        const qs = await getDocs(q);
+        return qs.docs.map((doc => doc.data() as Session));
+    } catch (e) {
+        throw e;
+    }
 }
 
-//marking student as absent or present
-const updateStudentAttendance = async (tutorId: string, studentID: string): Promise<void> => {
+const getSessionNotes = async (sessionId: string): Promise<SessionNotes[]> => {
+    try {
+        const q = query(collection(db, "sessions", sessionId, "sessionNotes"));
+        const qs = await getDocs(q);
+        return qs.docs.map((doc) => doc.data() as SessionNotes);
+    } catch (e) {
+        throw e;
+    }
 }
 
-//marking tutor as absent or present
-const updateTutorAttendance = async (tutorId: string, studentID: string): Promise<void> => {
+const cancelSession = async (sessionId: string): Promise<void> => {
+    try {
+        const docRef = doc(db, "sessions", sessionId);
+        await updateDoc(docRef, {
+            status: "canceled",
+        });
+    } catch (e) {
+        throw e;
+    }
 }
 
-const getSessionNotes = async (sessionID: string) => {
+const updateSessionAttendance = async (sessionId: string, isAbsent: boolean, roleType: "student" | "tutor"): Promise<void> => {
+    try {
+        const docRef = doc(db, "sessions", sessionId);
+
+        if (roleType === "student") {
+            await updateDoc(docRef, {
+                isStudentAbsent: isAbsent,
+            })
+        } else {
+            await updateDoc(docRef, {
+                isTutorAbsent: isAbsent,
+            })
+        }
+    } catch (e) {
+        throw e;
+    }
 }
+
+
 

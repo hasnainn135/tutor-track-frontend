@@ -1,4 +1,4 @@
-interface FirestoreTimestamp {
+export interface FirestoreTimestamp {
     seconds: number;
     nanoseconds: number;
 }
@@ -37,31 +37,31 @@ export interface StudentSchema extends UserSchema {
     myTutorsID: string[];
 }
 
-interface SessionNotes {
+export interface SessionNotes {
     id: string;
-    senderID: string;
-    receiverID: string;
+    senderId: string;
+    receiverId: string;
     content: string;
-    time: string;
+    timestamp: Date;
 }
 
 export interface Session {
     id: string;
-    studentID: string;
-    tutorID: string;
+    studentId: string;
+    tutorId: string;
     monthYear: string;
-    hours: string;
-    timestamp: string;
-    status: string;
-    bookedStartingTime: string;
-    bookedEndTime: string;
-    actualStartingTime: string;
-    actualDuration: string;
-    actualEndTime: string;
-    totalPauseTime: string;
-    isStudentAbsent: boolean;
+    duration: string; // is this correct data type? please test
+    status: "incomplete" | "completed" | "canceled";
+    bookingStartTime: string; // is this correct data type? please test
+    bookingEndTime: string; // is this correct data type? please test
+    actualStartTime: string | null; // is this correct data type? please test
+    actualEndTime: string | null; // is this correct data type? please test
+    actualDuration: string | null; // is this correct data type? please test
+    totalPauseTime: string | null; // is this correct data type? please test
+    isStudentAbsent: boolean
     isTutorAbsent: boolean;
-    bookingNotes: string;
+    additionalNotes: string;
+    createdAt: Date;
     sessionNotes: SessionNotes[];
 }
 
