@@ -1,14 +1,15 @@
 import StudentSidebar from "@/components/StudentSidebar";
 import "@/styles/globals.css";
-import type { AppProps } from "next/app";
+import type {AppProps} from "next/app";
 import NavbarWrapper from "@/components/NavbarWrapper";
 import useAuthState from "@/states/AuthState";
 import {useRouter} from "next/router";
 import {useEffect} from "react";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function App({Component, pageProps}: AppProps) {
 
-    const {user, userData} = useAuthState();
+    const {user, userData, authLoading} = useAuthState();
     const router = useRouter();
 
     useEffect(() => {
@@ -23,10 +24,17 @@ export default function App({ Component, pageProps }: AppProps) {
         }
     }, [user, userData, router]);
 
-  return (
-      <StudentSidebar>
-        <NavbarWrapper/>
-        <Component {...pageProps} />
-      </StudentSidebar>
-  );
+    if (authLoading) {
+        return (
+            <div className="h-screen w-screen flex justify-center items-center">
+                <LoadingSpinner/>
+            </div>);
+    }
+
+    return (
+        <StudentSidebar>
+            <NavbarWrapper/>
+            <Component {...pageProps} />
+        </StudentSidebar>
+    );
 }
