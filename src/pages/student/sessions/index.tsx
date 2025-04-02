@@ -1,6 +1,5 @@
 import SessionListItem from "@/components/SessionListItem";
 import ContainerLayout from "@/pages/layouts/ContainerLayout";
-import { SessionsType, StudentType, TutorType } from "@/types/usertypes";
 import React, { useEffect, useState } from "react";
 import { RxCross2 } from "react-icons/rx";
 import {
@@ -10,18 +9,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useUsers } from "@/hooks/useUsers";
 import DatePicker from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import { Session, StudentSchema, TutorSchema } from "@/types/firebase";
+import useAuthState from "@/states/AuthState";
+import { getMyTutors, getSessions, getTutorById } from "@/utils/firestore";
 
 const StudentSessions = () => {
   const [activeTab, setActiveTab] = useState<number>(1);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [sessionLoading, setSessionLoading] = useState<boolean>(false);
-  const [sessions, setSessions] = useState<SessionsType[] | undefined>([]);
-  const [std, setStd] = useState<StudentType | null>(null);
-  const [bookedTutors, setBookedTutors] = useState<TutorType[]>([]);
+  const [sessions, setSessions] = useState<Session[] | undefined>([]);
+  const [std, setStd] = useState<StudentSchema | null>(null);
+  const [bookedTutors, setBookedTutors] = useState<TutorSchema[]>([]);
   //FILTERS
   const [date, setDate] = useState<Date | undefined>();
   const [sessionFilters, setSessionFilters] = useState<{
@@ -42,23 +43,17 @@ const StudentSessions = () => {
     toDuration: "",
   });
 
-  const { loggedInStudent, getTutorById } = useUsers();
+  // const { loggedInStudent, getTutorById } = useUsers();
+  const { user, userData } = useAuthState();
 
   useEffect(() => {
     const fetchStudentSessions = async () => {
       setSessionLoading(true);
       try {
-        const response = await fetch("/sessions.json");
-        if (!response.ok) {
-          throw new Error("Failed to load data");
-        }
-        const allSessions: SessionsType[] = await response.json();
+        if (!user) return;
+        const response = await getSessions(user?.uid, "student");
 
-        const tutorSessions = allSessions.filter((session) =>
-          loggedInStudent?.sessions?.includes(session.id)
-        );
-
-        setSessions(tutorSessions);
+        setSessions(response);
       } catch (err) {
         setSessionError((err as Error).message);
       } finally {
@@ -67,32 +62,24 @@ const StudentSessions = () => {
     };
 
     async function fetchStudentTutors() {
-      if (!loggedInStudent) return;
+      if (!user) return;
 
-      if (loggedInStudent.booked_tutors)
-        try {
-          const tutors = await Promise.all(
-            loggedInStudent.booked_tutors.map(async (tutorId) => {
-              return await getTutorById(tutorId.tutor_id);
-            })
-          );
-          // Filter out null values
-          const validTutors = tutors.filter(
-            (tutor): tutor is TutorType => tutor !== null
-          );
-          setBookedTutors(validTutors);
-        } catch (error) {
-          console.error("Error fetching Tutor Data:", error);
-        }
+      try {
+        const tutors = await getMyTutors(user.uid);
+
+        setBookedTutors(tutors);
+      } catch (error) {
+        console.error("Error fetching Tutor Data:", error);
+      }
     }
 
-    if (loggedInStudent) fetchStudentSessions();
+    fetchStudentSessions();
     fetchStudentTutors();
-  }, [loggedInStudent]);
+  }, [user, userData]);
 
   //GROUP Sessions by date
   const groupSessionsByDate = (
-    status: SessionsType["status"] | SessionsType["status"][],
+    status: Session["status"] | Session["status"][],
     sortDescending = false
   ) => {
     return (
@@ -105,13 +92,13 @@ const StudentSessions = () => {
         .sort(
           (a, b) =>
             sortDescending
-              ? new Date(b.session_date).getTime() -
-                new Date(a.session_date).getTime() // Descending for Previous & Canceled
-              : new Date(a.session_date).getTime() -
-                new Date(b.session_date).getTime() // Ascending for Upcoming
+              ? new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime() // Descending for Previous & Canceled
+              : new Date(a.createdAt).getTime() -
+                new Date(b.createdAt).getTime() // Ascending for Upcoming
         )
-        .reduce<Record<string, SessionsType[]>>((acc, session) => {
-          const sessionDate = new Date(session.session_date);
+        .reduce<Record<string, Session[]>>((acc, session) => {
+          const sessionDate = new Date(session.createdAt);
           const today = new Date();
           const tomorrow = new Date();
           tomorrow.setDate(today.getDate() + 1);
@@ -136,13 +123,11 @@ const StudentSessions = () => {
     );
   };
 
-  const upcomingSessions = groupSessionsByDate("upcoming"); // Ascending order
-  const previousSessions = groupSessionsByDate(["completed", "ongoing"], true); // Descending order
+  const upcomingSessions = groupSessionsByDate("incomplete"); // Ascending order
+  const previousSessions = groupSessionsByDate(["completed"], true); // Descending order
   const canceledSessions = groupSessionsByDate("canceled", true); // Descending order
 
-  const renderSessionSection = (
-    sessionsByDate: Record<string, SessionsType[]>
-  ) => {
+  const renderSessionSection = (sessionsByDate: Record<string, Session[]>) => {
     if (Object.keys(sessionsByDate).length === 0) return <div>No Sessions</div>;
     return (
       <div className="flex flex-col gap-2">
@@ -259,8 +244,8 @@ const StudentSessions = () => {
                     {bookedTutors.map((tutor) => {
                       if (tutor)
                         return (
-                          <SelectItem key={tutor.id} value={tutor.id}>
-                            {tutor.name}
+                          <SelectItem key={tutor.uid} value={tutor.uid}>
+                            {tutor.fullName}
                           </SelectItem>
                         );
                     })}

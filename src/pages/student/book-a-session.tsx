@@ -11,14 +11,26 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import DatePicker from "@/components/ui/date-picker";
 import LoadingSpinner from "@/components/ui/loading-spinner";
-import { useUsers } from "@/hooks/useUsers";
-import { TutorType } from "@/types/usertypes";
+import useAuthState from "@/states/AuthState";
+import { TutorSchema } from "@/types/firebase";
+import { createSession, getMyTutors } from "@/utils/firestore";
+import { ca } from "date-fns/locale";
 
 const BookSession: FC = () => {
-  const { tutors, loading, error } = useUsers();
+  const { user, userData } = useAuthState();
 
   const [date, setDate] = useState<Date | undefined>();
-  const [selectedTutor, setSelectedTutor] = useState<TutorType | null>(null);
+  const [selectedDay, setSelectedDay] = useState<
+    | "monday"
+    | "tuesday"
+    | "wednesday"
+    | "thursday"
+    | "friday"
+    | "saturday"
+    | "sunday"
+  >();
+  const [selectedTutor, setSelectedTutor] = useState<TutorSchema | null>(null);
+  const [myTutors, setMyTutors] = useState<TutorSchema[] | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -29,6 +41,42 @@ const BookSession: FC = () => {
     notes: "",
     date: undefined,
   });
+
+  function getWeekday(dateString: string) {
+    const date = new Date(dateString);
+    const weekdays = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    return weekdays[date.getDay()] as
+      | "monday"
+      | "tuesday"
+      | "wednesday"
+      | "thursday"
+      | "friday"
+      | "saturday"
+      | "sunday";
+  }
+
+  useEffect(() => {
+    async function fetchStudentsTutors() {
+      if (!user) return;
+      if (userData?.role === "student") {
+        try {
+          const tutors = await getMyTutors(user.uid);
+
+          setMyTutors(tutors);
+        } catch (error) {
+          console.error("Error fetching Tutor Data:", error);
+        }
+      }
+    }
+  }, [user, userData]);
 
   // Handle input changes
   const handleChange = (field: string, value: any) => {
@@ -42,17 +90,41 @@ const BookSession: FC = () => {
     handleChange("date", date);
   }, [date]);
 
+  //Update SelectedDay
+  useEffect(() => {
+    if (!date) return;
+    setSelectedDay(getWeekday(date?.toString()));
+  }, [date]);
+
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!date) {
-      setFormError("Please Select a Session Date");
-      return;
-    } else setFormError(null);
-    setIsSubmitting(true);
-    //
+
+    try {
+      if (!date) {
+        setFormError("Please Select a Session Date");
+        return;
+      } else setFormError(null);
+
+      if (user && userData) {
+        setIsSubmitting(true);
+        createSession(
+          formData.sessionWith, // tutorId
+          user.uid, // studentId
+          formData.sessionLimit, // sessionDuration
+          formData.timeSlot, // timeSlot
+          date, // sessionDate
+          formData.notes, // notes,
+          500 // sessionCharges
+        );
+      }
+    } catch (error) {
+      console.error("Error creating session:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+
     console.log("Form Data:", formData);
-    setIsSubmitting(false);
   };
 
   return (
@@ -72,7 +144,7 @@ const BookSession: FC = () => {
               onValueChange={(value) => {
                 handleChange("sessionWith", value);
                 setSelectedTutor(
-                  tutors.find((tutor) => tutor.id === value) || null
+                  myTutors?.find((tutor) => tutor.uid === value) || null
                 );
               }}
             >
@@ -83,18 +155,18 @@ const BookSession: FC = () => {
                 <SelectValue placeholder="Select Tutor" />
               </SelectTrigger>
               <SelectContent>
-                {tutors.map((tutor) => {
+                {myTutors?.map((tutor) => {
                   return (
-                    <SelectItem key={tutor.id} value={tutor.id}>
+                    <SelectItem key={tutor.uid} value={tutor.uid}>
                       <div className="flex items-center justify-start gap-2">
                         <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-200">
                           <img
-                            src={tutor.pfp}
+                            src={tutor.profilePicture ?? undefined}
                             alt=""
                             className="object-cover h-9"
                           />
                         </div>
-                        <p>{tutor.name}</p>
+                        <p>{tutor.fullName}</p>
                       </div>
                     </SelectItem>
                   );
@@ -131,12 +203,12 @@ const BookSession: FC = () => {
             </Select>
           </div>
           {/* Time Slot */}
-          {selectedTutor?.timeSlots && (
+          {selectedTutor?.weeklySchedule && selectedDay && (
             <div className="flex flex-col gap-2">
               <p className="font-medium text-sm">Pick Time Slot</p>
               <div className="flex gap-2 flex-wrap">
-                {selectedTutor?.timeSlots.map((slot) => (
-                  <div key={slot} className="relative">
+                {selectedTutor?.weeklySchedule?.[selectedDay]?.map((slot) => (
+                  <div key={`${slot.start} + ${slot.end}`} className="relative">
                     <input
                       onChange={(e) =>
                         handleChange("timeSlot", e.currentTarget.value)
@@ -144,15 +216,16 @@ const BookSession: FC = () => {
                       required
                       type="radio"
                       name="slot"
-                      id={slot}
-                      value={slot}
+                      id={`${slot.start} + ${slot.end}`}
+                      value={`${slot.start} + ${slot.end}`}
                       className="peer absolute opacity-0"
                     />
                     <label
-                      htmlFor={slot}
+                      htmlFor={`${slot.start} + ${slot.end}`}
                       className="text-center block w-32 cursor-pointer border border-primary_green rounded-md px-3 py-1.5 text-primary_green font-medium peer-checked:bg-primary_green peer-checked:text-white"
                     >
-                      {slot}
+                      {slot.start}
+                      {slot.end}
                     </label>
                   </div>
                 ))}
