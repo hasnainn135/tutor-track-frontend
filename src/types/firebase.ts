@@ -22,13 +22,13 @@ interface TeachingLevel {
     subjects: string[];
 }
 
-interface Reviews {
+export interface Reviews {
     id: string;
     reviewerID: string;
     reviewerName: string;
     reviewerPhotoURL: string;
     rating: number;
-    timestamp: string;
+    timestamp: Date;
     content: string;
 }
 

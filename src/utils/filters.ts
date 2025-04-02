@@ -1,4 +1,4 @@
-import {Session, StudentSchema} from "@/types/firebase";
+import {Reviews, Session, StudentSchema} from "@/types/firebase";
 
 const getSessionsByMonth = (month:number, year:number, sessions:Session[]) => {};
 
@@ -19,3 +19,5 @@ const getNumberOfSessionsByWeek = (week:number, month:number, year:number, sessi
 const getActiveStudentsByMonth = (month:number, year:number, sessions:Session[]) => {};
 
 const getActiveStudentsByWeek = (week:number, month:number, year:number, sessions:Session[]) => {};
+
+const calculateTutorRating = (reviews: Reviews[]):number => {return 0}

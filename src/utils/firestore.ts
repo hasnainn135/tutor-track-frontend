@@ -2,9 +2,7 @@ import {collection, DocumentData, getDocs, Query, query, where} from "@firebase/
 import {auth, db} from "@/firebase/firebase";
 import {doc, getDoc, setDoc, updateDoc} from "firebase/firestore";
 import {
-    FirestoreTimestamp,
-    MyStudents,
-    MyTutors,
+    Reviews,
     Session,
     SessionNotes,
     StudentSchema,
@@ -248,5 +246,34 @@ export const updateSessionAttendance = async (sessionId: string, isAbsent: boole
     }
 }
 
+export const addReview = async (studentId: string, studentName: string, studentPhotoURL: string, tutorId: string, rating: number, content: string): Promise<void> => {
+    try {
+        const collRef = collection(db, "users", tutorId, "reviews");
+        const docRef = doc(collRef);
+        const reviewId = docRef.id;
+        const data: Reviews = {
+            id: reviewId,
+            reviewerID: studentId,
+            reviewerName: studentName,
+            reviewerPhotoURL: studentPhotoURL,
+            rating: rating,
+            timestamp: new Date(),
+            content: content,
+        }
+        await setDoc(docRef, data);
+    } catch (e) {
+        throw e;
+    }
+}
+
+export const getAllReviews = async (tutorId: string): Promise<Reviews[]> => {
+    try {
+        const q = query(collection(db, "users", tutorId, "reviews"));
+        const qs = await getDocs(q);
+        return qs.docs.map((doc => doc.data() as Reviews));
+    } catch (e) {
+        throw e;
+    }
+}
 
 
