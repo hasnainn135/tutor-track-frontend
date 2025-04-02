@@ -48,7 +48,8 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
           session.status === "ongoing"
             ? "border-bright_green"
             : "border-light_gray"
-        } bg-[#FBFBFB] overflow-hidden flex items-center`}>
+        } bg-[#FBFBFB] overflow-hidden flex items-center`}
+      >
         {/* LEFT COLORED BORDER */}
         <div
           className={`w-1 h-full ${
@@ -60,7 +61,8 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
               : session.tutor_absent
               ? "bg-primary_green"
               : "bg-light_gray"
-          }`}></div>
+          }`}
+        ></div>
         <div className="flex items-center justify-between px-2 py-3 w-full">
           <div className="flex items-center gap-6">
             {/* Tutor INFO */}
@@ -109,7 +111,8 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
               <p
                 className={`text-lg font-semibold ${
                   session.status === "ongoing" && "text-bright_green"
-                }`}>
+                }`}
+              >
                 {session.status === "canceled" ? "-" : session.session_limit}
               </p>
             </div>
@@ -135,12 +138,14 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   className=" bg-white border-none"
-                  align="end">
+                  align="end"
+                >
                   {session.status === "completed" ||
                   session.status === "ongoing" ? (
                     <DropdownMenuItem
                       className="cursor-pointer"
-                      onClick={markTutorAttendance}>
+                      onClick={markTutorAttendance}
+                    >
                       {session.tutor_absent
                         ? "Mark Tutor Present"
                         : "Mark Tutor Absent"}
@@ -148,7 +153,8 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
                   ) : session.status === "upcoming" ? (
                     <DropdownMenuItem
                       className="cursor-pointer"
-                      onClick={cancelSession}>
+                      onClick={cancelSession}
+                    >
                       Cancel Session
                     </DropdownMenuItem>
                   ) : (
@@ -203,7 +209,8 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
           session.status === "ongoing"
             ? "border-bright_green"
             : "border-light_gray"
-        } bg-[#FBFBFB] overflow-hidden flex items-center`}>
+        } bg-[#FBFBFB] overflow-hidden flex items-center`}
+      >
         {/* LEFT COLORED BORDER */}
         <div
           className={`w-1 h-full ${
@@ -215,7 +222,8 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
               : session.student_absent
               ? "bg-primary_green"
               : "bg-light_gray"
-          }`}></div>
+          }`}
+        ></div>
         <div className="flex items-center justify-between px-2 py-3 w-full">
           <div className="flex items-center gap-6">
             {/* student INFO */}
@@ -264,7 +272,8 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
               <p
                 className={`text-lg font-semibold ${
                   session.status === "ongoing" && "text-bright_green"
-                }`}>
+                }`}
+              >
                 {session.status === "canceled" ? "-" : session.session_limit}
               </p>
             </div>
@@ -295,12 +304,14 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   className=" bg-white border-none"
-                  align="end">
+                  align="end"
+                >
                   {session.status === "completed" ||
                   session.status === "ongoing" ? (
                     <DropdownMenuItem
                       className="cursor-pointer"
-                      onClick={markStudentAttendance}>
+                      onClick={markStudentAttendance}
+                    >
                       {session.student_absent
                         ? "Mark Student Present"
                         : "Mark Student Absent"}
@@ -308,7 +319,8 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
                   ) : session.status === "upcoming" ? (
                     <DropdownMenuItem
                       className="cursor-pointer"
-                      onClick={cancelSession}>
+                      onClick={cancelSession}
+                    >
                       Cancel Session
                     </DropdownMenuItem>
                   ) : (

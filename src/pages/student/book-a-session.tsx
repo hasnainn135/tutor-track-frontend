@@ -59,7 +59,8 @@ const BookSession: FC = () => {
     <ContainerLayout heading="Book a Session">
       <form
         onSubmit={handleSubmit}
-        className="grid lg:grid-cols-3 grid-cols-1 gap-6">
+        className="grid lg:grid-cols-3 grid-cols-1 gap-6"
+      >
         <div className="flex flex-col gap-5 lg:col-span-2">
           {/* Session With */}
           <div className="flex flex-col gap-2">
@@ -73,10 +74,12 @@ const BookSession: FC = () => {
                 setSelectedTutor(
                   tutors.find((tutor) => tutor.id === value) || null
                 );
-              }}>
+              }}
+            >
               <SelectTrigger
                 id="session-with"
-                className="w-full h-14 font-medium ">
+                className="w-full h-14 font-medium "
+              >
                 <SelectValue placeholder="Select Tutor" />
               </SelectTrigger>
               <SelectContent>
@@ -108,7 +111,8 @@ const BookSession: FC = () => {
               required
               onValueChange={(value) => {
                 handleChange("sessionLimit", value);
-              }}>
+              }}
+            >
               <SelectTrigger id="session-limit" className="w-full font-medium ">
                 <SelectValue placeholder="Select Session Limit" />
               </SelectTrigger>
@@ -146,7 +150,8 @@ const BookSession: FC = () => {
                     />
                     <label
                       htmlFor={slot}
-                      className="text-center block w-32 cursor-pointer border border-primary_green rounded-md px-3 py-1.5 text-primary_green font-medium peer-checked:bg-primary_green peer-checked:text-white">
+                      className="text-center block w-32 cursor-pointer border border-primary_green rounded-md px-3 py-1.5 text-primary_green font-medium peer-checked:bg-primary_green peer-checked:text-white"
+                    >
                       {slot}
                     </label>
                   </div>
@@ -187,7 +192,8 @@ const BookSession: FC = () => {
           <Button
             className="w-full flex items-center gap-2"
             type="submit"
-            disabled={isSubmitting}>
+            disabled={isSubmitting}
+          >
             {isSubmitting ? (
               <>
                 <LoadingSpinner size="6" />

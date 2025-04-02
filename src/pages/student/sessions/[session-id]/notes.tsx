@@ -91,9 +91,11 @@ const StudentNotes: FC = () => {
                   key={note.id}
                   className={`flex items-center py-2 text-sm gap-3  ${
                     note.sender_type === "student" ? "flex-row-reverse" : ""
-                  }`}>
+                  }`}
+                >
                   <div
-                    className={`flex-shrink-0 w-8 h-8 rounded-full overflow-hidden bg-slate-200`}>
+                    className={`flex-shrink-0 w-8 h-8 rounded-full overflow-hidden bg-slate-200`}
+                  >
                     <img
                       src={
                         note.sender_type === "tutor"
@@ -107,7 +109,8 @@ const StudentNotes: FC = () => {
                   <p
                     className={`w-full  ${
                       note.sender_type === "student" ? "text-right" : ""
-                    }`}>
+                    }`}
+                  >
                     {note.content}
                   </p>
                   <p className="text-xs flex-shrink-0 text-gray-400">

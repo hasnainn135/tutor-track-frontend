@@ -1,13 +1,41 @@
-
 import { Day } from "date-fns";
 
 export type TutorType = {
   id: string;
   name: string;
   pfp: string;
+  level_of_education: string;
+  institue: string;
+  teaching_experience: string;
+  about: string;
+  country: string;
+  state: string;
+  city: string;
+
+  rating: number;
+  total_students_taught: number;
+  hourly_rate: string;
+
+  offeredSubjects: SubjectLevelType[];
+  reviews: ReviewType[] | null;
+
   timeSlots: string[];
   sessions: string[] | undefined;
   booked_students: string[] | undefined;
+};
+
+export type SubjectLevelType = {
+  level: string;
+  subjects: string[];
+};
+
+export type ReviewType = {
+  id: string;
+  reviewerName: string;
+  reviewerID: string;
+  rating: number;
+  date: string;
+  content: string;
 };
 
 export type StudentType = {

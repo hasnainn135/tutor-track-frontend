@@ -3,7 +3,7 @@ import {db} from "@/firebase/firebase";
 import {doc, getDoc, setDoc, updateDoc} from "firebase/firestore";
 import {Session, SessionNotes, StudentSchema, TutorSchema} from "@/types/firebase";
 
-const getTutors = async (): Promise<TutorSchema[]> => {
+export const getTutors = async (): Promise<TutorSchema[]> => {
     try {
         const q = query(collection(db, "tutors"));
         const qs = await getDocs(q);
@@ -14,7 +14,7 @@ const getTutors = async (): Promise<TutorSchema[]> => {
 }
 
 
-const getMyTutors = async (studentId: string): Promise<TutorSchema[]> => {
+export const getMyTutors = async (studentId: string): Promise<TutorSchema[]> => {
     try {
         const q = query(collection(db, "tutors"), where("myStudentsId", "array-contains", studentId));
         const qs = await getDocs(q);
@@ -25,7 +25,7 @@ const getMyTutors = async (studentId: string): Promise<TutorSchema[]> => {
 
 }
 
-const getTutorById = async (tutorId: string): Promise<TutorSchema> => {
+export const getTutorById = async (tutorId: string): Promise<TutorSchema> => {
     try {
         const ds = await getDoc(doc(db, "tutors", tutorId));
         return ds.data() as TutorSchema;
@@ -35,7 +35,7 @@ const getTutorById = async (tutorId: string): Promise<TutorSchema> => {
 }
 
 
-const getMyStudents = async (tutorId: string): Promise<StudentSchema[]> => {
+export const getMyStudents = async (tutorId: string): Promise<StudentSchema[]> => {
     try {
         const q = query(collection(db, "students"), where("myTutorsId", "array-contains", tutorId));
         const qs = await getDocs(q);
@@ -45,7 +45,7 @@ const getMyStudents = async (tutorId: string): Promise<StudentSchema[]> => {
     }
 }
 
-const getStudentById = async (studentId: string): Promise<StudentSchema> => {
+export const getStudentById = async (studentId: string): Promise<StudentSchema> => {
     try {
         const ds = await getDoc(doc(db, "students", studentId));
         return ds.data() as StudentSchema;
@@ -54,7 +54,7 @@ const getStudentById = async (studentId: string): Promise<StudentSchema> => {
     }
 }
 
-const createSession = async (tutorId: string, studentId: string, duration: string, startTime: string, date: Date, additionalNotes: string): Promise<void> => {
+export const createSession = async (tutorId: string, studentId: string, duration: string, startTime: string, date: Date, additionalNotes: string): Promise<void> => {
     try {
         const combinedId: string = tutorId + studentId;
         const data: Session = {
@@ -83,7 +83,7 @@ const createSession = async (tutorId: string, studentId: string, duration: strin
     }
 }
 
-const addSessionNote = async (sessionId: string, senderId: string, receiverId: string, content: string): Promise<void> => {
+export const addSessionNote = async (sessionId: string, senderId: string, receiverId: string, content: string): Promise<void> => {
     try {
         const collRef = collection(db, "sessions", sessionId, "sessionNotes");
         const docRef = doc(collRef);
@@ -101,7 +101,7 @@ const addSessionNote = async (sessionId: string, senderId: string, receiverId: s
     }
 }
 
-const getSessions = async (userId: string, roleType: "student" | "tutor"): Promise<Session[]> => {
+export const getSessions = async (userId: string, roleType: "student" | "tutor"): Promise<Session[]> => {
     try {
         let q: Query<DocumentData, DocumentData>;
         if (roleType === "student") {
@@ -116,7 +116,7 @@ const getSessions = async (userId: string, roleType: "student" | "tutor"): Promi
     }
 }
 
-const getSessionNotes = async (sessionId: string): Promise<SessionNotes[]> => {
+export const getSessionNotes = async (sessionId: string): Promise<SessionNotes[]> => {
     try {
         const q = query(collection(db, "sessions", sessionId, "sessionNotes"));
         const qs = await getDocs(q);
@@ -126,7 +126,7 @@ const getSessionNotes = async (sessionId: string): Promise<SessionNotes[]> => {
     }
 }
 
-const cancelSession = async (sessionId: string): Promise<void> => {
+export const cancelSession = async (sessionId: string): Promise<void> => {
     try {
         const docRef = doc(db, "sessions", sessionId);
         await updateDoc(docRef, {
@@ -137,7 +137,7 @@ const cancelSession = async (sessionId: string): Promise<void> => {
     }
 }
 
-const updateSessionAttendance = async (sessionId: string, isAbsent: boolean, roleType: "student" | "tutor"): Promise<void> => {
+export const updateSessionAttendance = async (sessionId: string, isAbsent: boolean, roleType: "student" | "tutor"): Promise<void> => {
     try {
         const docRef = doc(db, "sessions", sessionId);
 
