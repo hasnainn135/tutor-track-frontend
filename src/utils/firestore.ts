@@ -1,7 +1,33 @@
 import {collection, DocumentData, getDocs, Query, query, where} from "@firebase/firestore";
-import {db} from "@/firebase/firebase";
+import {auth, db} from "@/firebase/firebase";
 import {doc, getDoc, setDoc, updateDoc} from "firebase/firestore";
 import {Session, SessionNotes, StudentSchema, TutorSchema} from "@/types/firebase";
+import {createUserWithEmailAndPassword, sendEmailVerification, updateProfile} from "firebase/auth";
+
+export const createTutor = async (email:string, pw:string, name:string, userType:string): Promise<void> => {
+    try {
+        const userCreds = await createUserWithEmailAndPassword(auth, email, pw);
+        await updateProfile(userCreds.user, {displayName: name,});
+        await sendEmailVerification(userCreds.user);
+        await setDoc(doc(db, "users", userCreds.user.uid), {
+            uid: userCreds.user.uid,
+            role: userType,
+            educationLevel: "",
+            instituteName: "",
+            about: "",
+            myTutors: [],
+            timestamp: new Date(),
+        });
+    } catch (e: any) {
+        throw e;
+    }
+}
+
+export const createStudent = async (): Promise<void> => {
+
+}
+
+
 
 export const getTutors = async (): Promise<TutorSchema[]> => {
     try {
@@ -65,7 +91,7 @@ export const getStudentById = async (studentId: string): Promise<StudentSchema> 
     }
 }
 
-export const createSession = async (tutorId: string, studentId: string, duration: string, startTime: string, date: Date, additionalNotes: string): Promise<void> => {
+export const createSession = async (tutorId: string, studentId: string, duration: string, startTime: string, date: Date, additionalNotes: string, chargesPerHour: number): Promise<void> => {
     try {
         const combinedId: string = tutorId + studentId;
         const data: Session = {
@@ -86,6 +112,7 @@ export const createSession = async (tutorId: string, studentId: string, duration
             additionalNotes: additionalNotes,
             createdAt: new Date(),
             sessionNotes: [],
+            chargesPerHour: chargesPerHour,
         };
         const docRef = doc(db, "sessions", combinedId)
         await setDoc(docRef, data);

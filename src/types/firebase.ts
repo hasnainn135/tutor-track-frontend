@@ -7,6 +7,8 @@ interface UserSchema {
     uid: string;
     role: string;
     fullName: string;
+    profilePicture: string;
+    email: string;
     educationLevel: string;
     instituteName: string;
     about: string;
@@ -30,16 +32,36 @@ interface Reviews {
     content: string;
 }
 
+type TimeRange = {
+    start: string;
+    end: string;
+};
+
+type WeeklySchedule = {
+    [day in 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday']?: TimeRange[];
+};
+
+export interface MyStudents {
+    studentId: string;
+    chargesPerHour: number;
+}
+
 export interface TutorSchema extends UserSchema {
     teachingLevels: TeachingLevel[];
     reviews: Reviews[];
-    myStudentsID: string[];
+    myStudents: MyStudents[];
     yearsOfExperience: number;
     displayChargesPerHour: number;
+    weeklySchedule: WeeklySchedule;
+}
+
+export interface MyTutors {
+    tutorId: string;
+    chargesPerHour: number;
 }
 
 export interface StudentSchema extends UserSchema {
-    myTutorsID: string[];
+    myTutors: MyTutors[];
 }
 
 export interface SessionNotes {
