@@ -19,7 +19,6 @@ const AddTutor: FC = () => {
       setAlltutors(tutors);
       console.log("tutors", tutors);
     };
-
     fetchTutors();
   }, []);
 
@@ -67,9 +66,7 @@ const AddTutor: FC = () => {
                 </div>
                 <Button
                   variant={"outline_green"}
-                  onClick={async () => {
-                    await addUser(tutor.uid, user.uid, 500);
-                  }}
+                  onClick={() => addUser(tutor.uid, user.uid, 500)}
                 >
                   Add tutor
                 </Button>
