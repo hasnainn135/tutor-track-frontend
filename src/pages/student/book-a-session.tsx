@@ -76,6 +76,7 @@ const BookSession: FC = () => {
         }
       }
     }
+    fetchStudentsTutors();
   }, [user, userData]);
 
   // Handle input changes
