@@ -11,7 +11,7 @@ import {
 import {createUserWithEmailAndPassword, sendEmailVerification, updateProfile} from "firebase/auth";
 import {arrayUnion} from "@firebase/firestore/lite";
 
-export const createTutor = async (email: string, pw: string, name: string, userType: string): Promise<void> => {
+export const createTutor = async (email: string, pw: string, name: string, userType: "student" | "tutor"): Promise<void> => {
     try {
         const userCreds = await createUserWithEmailAndPassword(auth, email, pw);
         await updateProfile(userCreds.user, {displayName: name,});
@@ -41,7 +41,7 @@ export const createTutor = async (email: string, pw: string, name: string, userT
     }
 }
 
-export const createStudent = async (email: string, pw: string, name: string, userType: string): Promise<void> => {
+export const createStudent = async (email: string, pw: string, name: string, userType: "student" | "tutor"): Promise<void> => {
     try {
         const userCreds = await createUserWithEmailAndPassword(auth, email, pw);
         await updateProfile(userCreds.user, {displayName: name,});
