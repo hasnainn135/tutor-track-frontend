@@ -10,6 +10,7 @@ import {
 import {auth, db} from "@/firebase/firebase";
 import {doc, getDoc, setDoc} from "firebase/firestore";
 import {TutorSchema, StudentSchema} from "@/types/firebase";
+import {createStudent, createTutor} from "@/utils/firestore";
 
 interface AuthStateType {
     user: User | null;
@@ -48,25 +49,13 @@ const useAuthState = create<AuthStateType>((set) => ({
         }));
     },
     signUp: async (email, pw, name, userType) => {
-        try {
-            set(() => ({authLoading: true}));
-            const userCreds = await createUserWithEmailAndPassword(auth, email, pw);
-            await updateProfile(userCreds.user, {displayName: name,});
-            await sendEmailVerification(userCreds.user);
-            await setDoc(doc(db, "users", userCreds.user.uid), {
-                uid: userCreds.user.uid,
-                role: userType,
-                educationLevel: "",
-                instituteName: "",
-                about: "",
-                myTutors: [],
-                timestamp: new Date(),
-            });
-            set(() => ({authLoading: false}));
-        } catch (e: any) {
-            set(() => ({authLoading: false}));
-            throw e;
+        set(() => ({authLoading: true}));
+        if (userType === "student") {
+            await createStudent(email, pw, name);
+        } else {
+            await createTutor(email, pw, name);
         }
+        set(() => ({authLoading: false}));
     },
     signIn: async (email, pw) => {
         try {

@@ -11,14 +11,14 @@ import {
 import {createUserWithEmailAndPassword, sendEmailVerification, updateProfile} from "firebase/auth";
 import {arrayUnion} from "@firebase/firestore/lite";
 
-export const createTutor = async (email: string, pw: string, name: string, userType: "student" | "tutor"): Promise<void> => {
+export const createTutor = async (email: string, pw: string, name: string): Promise<void> => {
     try {
         const userCreds = await createUserWithEmailAndPassword(auth, email, pw);
         await updateProfile(userCreds.user, {displayName: name,});
         await sendEmailVerification(userCreds.user);
         const data: TutorSchema = {
             uid: userCreds.user.uid,
-            role: userType,
+            role: "tutor",
             fullName: name,
             profilePicture: null,
             email: email,
@@ -41,14 +41,14 @@ export const createTutor = async (email: string, pw: string, name: string, userT
     }
 }
 
-export const createStudent = async (email: string, pw: string, name: string, userType: "student" | "tutor"): Promise<void> => {
+export const createStudent = async (email: string, pw: string, name: string): Promise<void> => {
     try {
         const userCreds = await createUserWithEmailAndPassword(auth, email, pw);
         await updateProfile(userCreds.user, {displayName: name,});
         await sendEmailVerification(userCreds.user);
         const data: StudentSchema = {
             uid: userCreds.user.uid,
-            role: userType,
+            role: "student",
             fullName: name,
             profilePicture: null,
             email: email,
