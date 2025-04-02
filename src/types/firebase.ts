@@ -5,7 +5,7 @@ export interface FirestoreTimestamp {
 
 interface UserSchema {
     uid: string;
-    role: string;
+    role: "student" | "tutor";
     fullName: string;
     profilePicture: string | null;
     email: string;
