@@ -34,6 +34,17 @@ export const getTutorById = async (tutorId: string): Promise<TutorSchema> => {
     }
 }
 
+export const updateTutorDisplayCharges = async (tutorId: string, newAmount: number): Promise<void> => {
+    try {
+        const docRef = doc(db, "tutors", tutorId);
+        await updateDoc(docRef, {
+            displayChargesPerHour:newAmount,
+        });
+    } catch (e) {
+        throw e;
+    }
+}
+
 
 export const getMyStudents = async (tutorId: string): Promise<StudentSchema[]> => {
     try {

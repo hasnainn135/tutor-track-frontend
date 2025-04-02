@@ -6,10 +6,13 @@ export interface FirestoreTimestamp {
 interface UserSchema {
     uid: string;
     role: string;
+    fullName: string;
     educationLevel: string;
     instituteName: string;
     about: string;
     timestamp: FirestoreTimestamp;
+    city: string | null;
+    country: string | null;
 }
 
 interface TeachingLevel {
@@ -31,6 +34,8 @@ export interface TutorSchema extends UserSchema {
     teachingLevels: TeachingLevel[];
     reviews: Reviews[];
     myStudentsID: string[];
+    yearsOfExperience: number;
+    displayChargesPerHour: number;
 }
 
 export interface StudentSchema extends UserSchema {
@@ -62,6 +67,7 @@ export interface Session {
     isTutorAbsent: boolean;
     additionalNotes: string;
     createdAt: Date;
+    chargesPerHour: number;
     sessionNotes: SessionNotes[];
 }
 
