@@ -67,19 +67,24 @@ export const createStudent = async (email: string, pw: string, name: string, use
 }
 
 export const addUser = async (tutorId: string, studentId: string, chargesPerHour: number): Promise<void> => {
-    const f1 = updateDoc(doc(db, "users", tutorId), {
-        myStudents: arrayUnion({
-            studentId,
-            chargesPerHour,
+    try {
+        const f1 = updateDoc(doc(db, "users", tutorId), {
+            myStudents: arrayUnion({
+                studentId,
+                chargesPerHour,
+            })
+        });
+        const f2 = updateDoc(doc(db, "users", studentId), {
+            myTutors: arrayUnion({
+                tutorId,
+                chargesPerHour,
+            })
         })
-    });
-    const f2 = updateDoc(doc(db, "users", studentId), {
-        myTutors: arrayUnion({
-            tutorId,
-            chargesPerHour,
-        })
-    })
-    await Promise.all([f1, f2]);
+        await Promise.all([f1, f2]);
+    } catch (e) {
+        throw e;
+    }
+
 }
 
 export const getTutors = async (): Promise<TutorSchema[]> => {
