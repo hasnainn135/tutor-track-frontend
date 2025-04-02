@@ -7,12 +7,12 @@ interface UserSchema {
     uid: string;
     role: string;
     fullName: string;
-    profilePicture: string;
+    profilePicture: string | null;
     email: string;
-    educationLevel: string;
-    instituteName: string;
-    about: string;
-    timestamp: FirestoreTimestamp;
+    educationLevel: string | null;
+    instituteName: string | null;
+    about: string | null;
+    createdAt: Date;
     city: string | null;
     country: string | null;
 }
@@ -50,9 +50,9 @@ export interface TutorSchema extends UserSchema {
     teachingLevels: TeachingLevel[];
     reviews: Reviews[];
     myStudents: MyStudents[];
-    yearsOfExperience: number;
-    displayChargesPerHour: number;
-    weeklySchedule: WeeklySchedule;
+    yearsOfExperience: number | null;
+    displayChargesPerHour: number | null;
+    weeklySchedule: WeeklySchedule | null;
 }
 
 export interface MyTutors {
@@ -61,7 +61,7 @@ export interface MyTutors {
 }
 
 export interface StudentSchema extends UserSchema {
-    myTutors: MyTutors[];
+    myTutors: MyTutors[] | null;
 }
 
 export interface SessionNotes {

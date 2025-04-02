@@ -1,33 +1,88 @@
 import {collection, DocumentData, getDocs, Query, query, where} from "@firebase/firestore";
 import {auth, db} from "@/firebase/firebase";
 import {doc, getDoc, setDoc, updateDoc} from "firebase/firestore";
-import {Session, SessionNotes, StudentSchema, TutorSchema} from "@/types/firebase";
+import {
+    FirestoreTimestamp,
+    MyStudents,
+    MyTutors,
+    Session,
+    SessionNotes,
+    StudentSchema,
+    TutorSchema
+} from "@/types/firebase";
 import {createUserWithEmailAndPassword, sendEmailVerification, updateProfile} from "firebase/auth";
+import {arrayUnion} from "@firebase/firestore/lite";
 
-export const createTutor = async (email:string, pw:string, name:string, userType:string): Promise<void> => {
+export const createTutor = async (email: string, pw: string, name: string, userType: string): Promise<void> => {
     try {
         const userCreds = await createUserWithEmailAndPassword(auth, email, pw);
         await updateProfile(userCreds.user, {displayName: name,});
         await sendEmailVerification(userCreds.user);
-        await setDoc(doc(db, "users", userCreds.user.uid), {
+        const data: TutorSchema = {
             uid: userCreds.user.uid,
             role: userType,
-            educationLevel: "",
-            instituteName: "",
-            about: "",
-            myTutors: [],
-            timestamp: new Date(),
-        });
+            fullName: name,
+            profilePicture: null,
+            email: email,
+            educationLevel: null,
+            instituteName: null,
+            about: null,
+            createdAt: new Date(),
+            city: null,
+            country: null,
+            teachingLevels: [],
+            reviews: [],
+            myStudents: [],
+            yearsOfExperience: null,
+            displayChargesPerHour: null,
+            weeklySchedule: null,
+        }
+        await setDoc(doc(db, "users", userCreds.user.uid), data);
     } catch (e: any) {
         throw e;
     }
 }
 
-export const createStudent = async (): Promise<void> => {
-
+export const createStudent = async (email: string, pw: string, name: string, userType: string): Promise<void> => {
+    try {
+        const userCreds = await createUserWithEmailAndPassword(auth, email, pw);
+        await updateProfile(userCreds.user, {displayName: name,});
+        await sendEmailVerification(userCreds.user);
+        const data: StudentSchema = {
+            uid: userCreds.user.uid,
+            role: userType,
+            fullName: name,
+            profilePicture: null,
+            email: email,
+            educationLevel: null,
+            instituteName: null,
+            about: null,
+            createdAt: new Date(),
+            city: null,
+            country: null,
+            myTutors: null,
+        }
+        await setDoc(doc(db, "users", userCreds.user.uid), data);
+    } catch (e: any) {
+        throw e;
+    }
 }
 
-
+export const addUser = async (tutorId: string, studentId: string, chargesPerHour: number): Promise<void> => {
+    const f1 = updateDoc(doc(db, "users", tutorId), {
+        myStudents: arrayUnion({
+            studentId,
+            chargesPerHour,
+        })
+    });
+    const f2 = updateDoc(doc(db, "users", studentId), {
+        myTutors: arrayUnion({
+            tutorId,
+            chargesPerHour,
+        })
+    })
+    await Promise.all([f1, f2]);
+}
 
 export const getTutors = async (): Promise<TutorSchema[]> => {
     try {
@@ -64,7 +119,7 @@ export const updateTutorDisplayCharges = async (tutorId: string, newAmount: numb
     try {
         const docRef = doc(db, "tutors", tutorId);
         await updateDoc(docRef, {
-            displayChargesPerHour:newAmount,
+            displayChargesPerHour: newAmount,
         });
     } catch (e) {
         throw e;
