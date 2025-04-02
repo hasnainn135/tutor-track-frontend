@@ -92,6 +92,15 @@ export const getTutors = async (): Promise<TutorSchema[]> => {
     }
 }
 
+export const getStudents = async (): Promise<StudentSchema[]> => {
+    try {
+        const q = query(collection(db, "users"), where("role", "==", "student"));
+        const qs = await getDocs(q);
+        return qs.docs.map((doc => doc.data() as StudentSchema));
+    } catch (e) {
+        throw e;
+    }
+}
 
 export const getMyTutors = async (studentId: string): Promise<TutorSchema[]> => {
     try {
