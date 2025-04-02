@@ -67,8 +67,8 @@ const AddTutor: FC = () => {
                 </div>
                 <Button
                   variant={"outline_green"}
-                  onClick={() => {
-                    addUser(tutor.uid, user.uid, 500);
+                  onClick={async () => {
+                    await addUser(tutor.uid, user.uid, 500);
                   }}
                 >
                   Add tutor
