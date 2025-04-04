@@ -12,6 +12,8 @@ import { HiMenu } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
 import useAuthState from "@/states/AuthState";
 import { MdOutlineBook } from "react-icons/md";
+import TimerSooner from "./TimerSooner";
+import useTimerState from "@/states/TimerState";
 
 type StudentSidebarProps = {
   children: React.ReactNode;
@@ -20,7 +22,9 @@ type StudentSidebarProps = {
 const StudentSidebar: FC<StudentSidebarProps> = ({ children }) => {
   const router = useRouter();
   const { user, userData, signOut } = useAuthState();
+  const { isRunning } = useTimerState();
   const userType = userData?.role;
+
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const pagesWithSidebar = [
@@ -106,7 +110,19 @@ const StudentSidebar: FC<StudentSidebarProps> = ({ children }) => {
       : [];
 
   return (
-    <div className={`${showSidebar ? "bg-[#E6E6E6] min-h-screen flex" : ""}`}>
+    <div
+      className={`${
+        showSidebar ? "bg-[#E6E6E6] min-h-screen flex relative" : ""
+      }`}
+    >
+      <div
+        className={`fixed md:bottom-5   bottom-[80%] right-5 z-50 ${
+          !isRunning ? "hidden" : ""
+        }`}
+      >
+        <TimerSooner />
+      </div>
+
       {/* Sidebar */}
       {showSidebar && (
         <>
@@ -283,7 +299,7 @@ const StudentSidebar: FC<StudentSidebarProps> = ({ children }) => {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 w-full ">
+      <div className="w-full overflow-x-hidden">
         {/* Mobile Topbar */}
         {showSidebar && (
           <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-white shadow-md sticky top-0 z-40">
@@ -299,7 +315,7 @@ const StudentSidebar: FC<StudentSidebarProps> = ({ children }) => {
           </div>
         )}
 
-        <div className={`${showSidebar ? "p-4 lg:p-10 bg-[#E6E6E6]" : ""}`}>
+        <div className={`${showSidebar ? "p-4 lg:p-10 bg-[#E6E6E6] " : ""}`}>
           {children}
         </div>
       </div>

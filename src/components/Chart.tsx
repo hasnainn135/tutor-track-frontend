@@ -18,40 +18,6 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 
-const chartData = [
-  { day: "1", earnings: 186 },
-  { day: "2", earnings: 305 },
-  { day: "3", earnings: 237 },
-  { day: "4", earnings: 73 },
-  { day: "5", earnings: 209 },
-  { day: "6", earnings: 214 },
-  { day: "7", earnings: 186 },
-  { day: "8", earnings: 305 },
-  { day: "9", earnings: 237 },
-  { day: "10", earnings: 73 },
-  { day: "11", earnings: 209 },
-  { day: "12", earnings: 214 },
-  { day: "13", earnings: 237 },
-  { day: "14", earnings: 73 },
-  { day: "15", earnings: 209 },
-  { day: "16", earnings: 214 },
-  { day: "17", earnings: 186 },
-  { day: "18", earnings: 305 },
-  { day: "19", earnings: 237 },
-  { day: "20", earnings: 73 },
-  { day: "21", earnings: 209 },
-  { day: "22", earnings: 214 },
-  { day: "23", earnings: 237 },
-  { day: "24", earnings: 73 },
-  { day: "25", earnings: 209 },
-  { day: "26", earnings: 0 },
-  { day: "27", earnings: 0 },
-  { day: "28", earnings: 0 },
-  { day: "29", earnings: 0 },
-  { day: "30", earnings: 0 },
-  { day: "31", earnings: 0 },
-];
-
 const chartConfig = {
   earnings: {
     label: "Earnings",
@@ -59,16 +25,12 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function Chart() {
+export function Chart({ data }: { data: { day: string; earnings: number }[] }) {
   return (
     <Card className="border-none p-0 m-0 shadow-none">
-      {/* <CardHeader>
-        <CardTitle>Bar Chart</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
-      </CardHeader> */}
       <CardContent>
         <ChartContainer config={chartConfig}>
-          <BarChart accessibilityLayer data={chartData}>
+          <BarChart accessibilityLayer data={data}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="day"
@@ -92,14 +54,6 @@ export function Chart() {
           </BarChart>
         </ChartContainer>
       </CardContent>
-      {/* <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 font-medium leading-none">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 months
-        </div>
-      </CardFooter> */}
     </Card>
   );
 }

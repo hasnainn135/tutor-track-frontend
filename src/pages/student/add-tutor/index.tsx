@@ -3,8 +3,10 @@ import ContainerLayout from "@/pages/layouts/ContainerLayout";
 import useAuthState from "@/states/AuthState";
 import { TutorSchema } from "@/types/firebase";
 import { addUser, getTutors } from "@/utils/firestore";
+import Image from "next/image";
 import { FC, useEffect, useState } from "react";
 import { IoSearchOutline } from "react-icons/io5";
+import pfp2 from "@/assets/pfp2.png";
 
 const AddTutor: FC = () => {
   const [alltutors, setAlltutors] = useState<TutorSchema[]>([]);
@@ -37,40 +39,43 @@ const AddTutor: FC = () => {
             <div className="flex-shrink-0">
               <Button>
                 <IoSearchOutline className="" />
-                Find
+                <p className="sm:block hidden">Find</p>
               </Button>
             </div>
           </div>
         </ContainerLayout>
 
         <ContainerLayout heading="Add Tutor" margin="0">
-          <div className=""></div>
           {alltutors?.map((tutor) => {
             if (searchVal)
               if (tutor?.email?.toLowerCase().includes(searchVal.toLowerCase()))
                 return (
                   <div
                     key={tutor.uid}
-                    className="even:bg-light_green px-7 py-3 flex items-center justify-between"
+                    className="even:bg-light_green sm:px-7 px-4 py-3 flex items-center justify-between sm:text-base text-sm"
                   >
                     <div className="flex items-center justify-start gap-3">
-                      <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-200">
-                        <img
-                          src={tutor.profilePicture ?? undefined}
+                      <div className="flex-shrink-0 sm:w-9 sm:h-9 w-6 h-6 rounded-full overflow-hidden bg-slate-200">
+                        <Image
+                          src={tutor.profilePicture ?? pfp2}
                           alt=""
-                          className="object-cover h-9"
+                          className="object-cover sm:h-9 h-6"
                         />
                       </div>
-                      <div className="">
+                      <div className=" overflow-hidden">
                         <p>{tutor.displayName}</p>
-                        <p className="text-sm font-medium">{tutor.email}</p>
+                        <p className="sm:text-sm text-xs font-medium">
+                          {tutor.email}
+                        </p>
                       </div>
                     </div>
                     <Button
+                      className="flex-shrink-0"
                       variant={"outline_green"}
                       onClick={() => addUser(tutor.uid, user.uid, 500)}
                     >
-                      Add Tutor
+                      <p className="sm:block hidden">Add Tutor</p>
+                      <p className="sm:hidden block ">Add</p>
                     </Button>
                   </div>
                 );

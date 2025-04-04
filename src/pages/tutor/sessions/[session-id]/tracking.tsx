@@ -12,198 +12,354 @@ import {
 } from "@/components/ui/select";
 import Timer from "@/components/Timer";
 import { IoMdAdd } from "react-icons/io";
-import { SessionNotes } from "@/types/firebase";
+import {
+  Session,
+  SessionNotes,
+  StudentSchema,
+  TutorSchema,
+} from "@/types/firebase";
+import useAuthState from "@/states/AuthState";
+import {
+  addSessionNote,
+  completeSession,
+  endSessionInFirestore,
+  getSessionById,
+  getSessionNotes,
+  getStudentById,
+  getTutorById,
+  listenToSessionChanges,
+  parseDuration,
+  setAutoEndSession,
+  startSessionInFirestore,
+} from "@/utils/firestore";
+import useTimerState from "@/states/TimerState";
+import Image from "next/image";
+import pfp2 from "@/assets/pfp2.png";
+import { ca } from "date-fns/locale";
+import Link from "next/link";
+import { IoChevronBackSharp } from "react-icons/io5";
+import { Timestamp } from "firebase/firestore";
 
 const TutorTracking: FC = () => {
-  // const { time, setTime } = useAuthState();
-
-  const [start, setStart] = useState<boolean>(false);
-  const [pause, setPause] = useState<boolean>(false);
+  const [autoEnd, setAutoEnd] = useState<boolean>(true);
   const [note, setNote] = useState<string>();
   const [noteList, setNoteList] = useState<SessionNotes[]>([]);
   const [count, setCount] = useState(0);
+  const [session, setSession] = useState<Session | null>(null);
+  const [tutor, setTutor] = useState<TutorSchema>();
+  const [student, setStudent] = useState<StudentSchema>();
 
   const [disableStartButton, setDisableStartButton] = useState<boolean>(false);
   const [disableStatus, setDisableStatus] = useState<string | null>(null);
   const [wait, setWait] = useState<number>(30);
 
+  const { userData } = useAuthState();
+  const {
+    time,
+    isRunning,
+    isPaused,
+    startTimer,
+    stopTimer,
+    resetTimer,
+    pauseTimer,
+    resumeTimer,
+    setSessionId,
+  } = useTimerState();
+
   const router = useRouter();
   const { "session-id": sessionId } = router.query;
 
-  // const handleStartStopSession = () => {
-  //   setStart(!start);
-  //   setPause(!start ? true : false);
+  useEffect(() => {
+    const getSessionData = async () => {
+      try {
+        if (!sessionId) return;
+        const session = await getSessionById(sessionId as string);
+        if (session) {
+          setSession(session);
+          setSessionId(sessionId as string);
+          setAutoEnd(session.autoEnd);
+          const tutor = await getTutorById(session.tutorId);
+          setTutor(tutor);
+          const std = await getStudentById(session.studentId);
+          setStudent(std);
+        }
+      } catch (e) {
+        console.log("error", e);
+      }
+    };
+    const fetchNotes = async () => {
+      if (!sessionId) return;
 
-  //   // Disable the "Start Session" button for 30s after it's clicked
-  //   if (!start) {
-  //     setDisableStartButton(true);
-  //     // setWait(wait - 1);
+      const notes = await getSessionNotes(sessionId as string);
+      setNoteList(notes);
+    };
+    getSessionData();
 
-  //     setTimeout(() => {
-  //       setDisableStartButton(false);
-  //       setDisableStatus(null);
-  //     }, 0.5 * 60 * 1000);
-  //   } else {
-  //     setTime("00 : 00 : 00");
-  //     setCount(0);
-  //   }
-  // };
+    fetchNotes();
+  }, [sessionId]);
 
-  // useEffect(() => {
-  //   console.log("time", time);
-  //   if (time !== "00 : 00 : 00") {
-  //     setStart(true);
-  //     setPause(true);
-  //   }
-  // }, [, time]);
+  const handleStartStopSession = async () => {
+    if (sessionId)
+      if (!isRunning) {
+        startTimer();
+        await startSessionInFirestore(sessionId as string);
 
-  // const addNote = () => {
-  //   if (note) {
-  //     const newNoteList = [...noteList];
-  //     const newNote: SessionNotes = {
-  //       id: "n12",
-  //       sender_type: "tutor",
-  //       student_id: "s1",
-  //       tutor_id: "t2",
-  //       content: note,
-  //       time: new Date().toLocaleTimeString("en-US", {
-  //         hour: "numeric",
-  //         minute: "2-digit",
-  //         hour12: true,
-  //       }),
-  //     };
+        if (!autoEnd) await setAutoEndSession(sessionId as string, autoEnd); //by default autoEnd is true in firebase at the time of session creation
+        setDisableStartButton(true);
+        setTimeout(() => {
+          setDisableStartButton(false);
+          setDisableStatus(null);
+        }, 30 * 1000);
+        // AUTO END SESSION
+        if (autoEnd) {
+          // Seconds to minutes
+          console.log(
+            (parseDuration(session?.duration as string) * 100000) / 60
+          );
+          setTimeout(async () => {
+            await endSessionInFirestore(sessionId as string);
+            await completeSession(sessionId as string);
+          }, parseDuration(session?.duration as string) * 1000 * 60);
+        }
+      } else {
+        try {
+          await endSessionInFirestore(sessionId as string);
+          await completeSession(sessionId as string);
+        } catch (e) {
+          console.error("error", e);
+        } finally {
+          stopTimer();
+          resetTimer();
+          setCount(0);
+        }
+      }
+  };
 
-  //     newNoteList.push(newNote);
-  //     setNoteList(newNoteList);
-  //     setNote("");
-  //   }
-  // };
+  const handlePauseResume = () => {
+    if (!isPaused) {
+      pauseTimer();
+    } else {
+      resumeTimer();
+    }
+  };
 
-  return (
-    <div className="flex flex-col h-full gap-3">
-      <ContainerLayout heading="Ongoing Session">
-        <div className="flex flex-col items-center gap-3 w-fit mx-auto">
-          <div className="flex flex-col items-center gap-1">
-            <p className="text-sm">Session Duration</p>
-            <Select defaultValue={"auto"}>
-              <SelectTrigger className="w-[200px] border border-primary_green text-center flex justify-center items-center text-primary_green font-medium text-md gap-2">
-                <SelectValue placeholder="Select Timer" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="auto">2hrs 30mins</SelectItem>
-                <SelectItem value="manual">Manual Timer</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-40 flex items-center justify-end">
+  const addNote = async () => {
+    if (note && userData && session?.tutorId) {
+      await addSessionNote(
+        sessionId as string,
+        userData.uid,
+        session?.tutorId,
+        note
+      );
+      const notes = await getSessionNotes(sessionId as string);
+
+      setNoteList(notes);
+      setNote("");
+    }
+  };
+
+  if (session?.end)
+    return (
+      <ContainerLayout>
+        <div className="h-96 flex flex-col gap-3 items-center justify-center px-4 text-center">
+          <p className="text-lg">
+            This Session has ended on{" "}
+            <span className="font-semibold">
+              {new Date(session.actualEndTime as string).toLocaleDateString(
+                "en-US",
+                {
+                  year: "numeric",
+                  month: "long",
+                  day: "2-digit",
+                }
+              )}
+            </span>{" "}
+            at{" "}
+            <span className="font-semibold">
+              {new Date(session.actualEndTime as string).toLocaleTimeString(
+                "en-US",
+                {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }
+              )}
+            </span>
+          </p>
+          <div className="flex items-center  sm:flex-nowrap flex-wrap justify-center">
+            <Link href={`/tutor/sessions/${session.id}/notes`} className="">
               <Button
                 variant={"outline_green"}
-                className="text-md"
-                disabled={!start}
-                onClick={() => {
-                  setPause(!pause);
-                }}
+                className="hover:text-primary_green"
               >
-                {pause ? (
-                  <>
-                    <IoMdPause />
-                    Pause Session
-                  </>
-                ) : (
-                  <>
-                    <IoMdPlay />
-                    Resume Session
-                  </>
-                )}
+                View Session Notes
               </Button>
-            </div>
-            <div className="relative">
-              {disableStartButton && (
-                <div
-                  className=" z-10 w-full h-full absolute rounded-full"
-                  onClick={() => {
-                    if (disableStartButton)
-                      setDisableStatus(`Wait ${wait}s before Ending Session`);
-                  }}
-                ></div>
-              )}
-              <button
-                onClick={() => {
-                  // handleStartStopSession();
-                }}
-                className="w-52 h-52 border-2 border-primary_green bg-light_green rounded-full text-xl font-semibold text-primary_green disabled:opacity-60"
-                disabled={disableStartButton}
-              >
-                {start ? "End Session" : "Start Session"}
-              </button>
-            </div>
-            <div className="flex items-center justify-start gap-2 w-40">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-200">
-                <img src={""} alt="" className="object-cover h-12" />
-              </div>
-              <div className="text-lg">
-                <p>{"Ab"}</p>
-              </div>
-            </div>
-          </div>
-          {disableStatus && (
-            <p className="text-xs text-red font-medium">{disableStatus}</p>
-          )}
-          <div className="">
-            <Timer start={pause} count={count} setCount={setCount} />
-          </div>
-        </div>
-      </ContainerLayout>
-      <ContainerLayout heading="Notes">
-        <div className="flex gap-3 items-center justify-between">
-          <textarea
-            value={note}
-            onChange={(e) => setNote(e.currentTarget.value)}
-            placeholder="Write Note"
-            rows={1}
-            className="resize-none border border-light_gray p-2 w-full rounded-md"
-          ></textarea>
-          <button
-            className="grid place-content-center bg-primary_green text-white rounded-md flex-shrink-0 w-8 h-8"
-            // onClick={addNote}
-          >
-            <IoMdAdd className="size-5" />
-          </button>
-        </div>
-        <div className="">
-          {noteList?.map((note) => {
-            return (
-              <div
-                key={note.id}
-                className={`flex items-center py-2 text-sm gap-3  ${
-                  // note.sender_type === "student" ? "flex-row-reverse" : ""
-                  ""
-                }`}
-              >
-                <div
-                  className={`flex-shrink-0 w-8 h-8 rounded-full overflow-hidden bg-slate-200`}
-                >
-                  <img src={" "} alt="" className="object-cover h-8" />
+            </Link>
+            <Link href={`/tutor/sessions`} className="">
+              <Button variant={"link"} className="hover:text-primary_green">
+                <div className="flex items-center gap-1 ">
+                  <IoChevronBackSharp className="size-3 mt-0.5" />
+                  Back to Sessions
                 </div>
-                <p
-                  className={`w-full  ${
-                    // note.sender_type === "student" ? "text-right" : ""
-                    ""
-                  }`}
-                >
-                  {note.content}
-                </p>
-                <p className="text-xs flex-shrink-0 text-gray-400">
-                  {new Date(note.timestamp).toDateString()}
-                </p>
-              </div>
-            );
-          })}
+              </Button>
+            </Link>
+          </div>
         </div>
       </ContainerLayout>
-    </div>
-  );
+    );
+
+  if (session)
+    return (
+      <div className="flex flex-col h-full gap-3">
+        {/* TIMER */}
+        <ContainerLayout heading="Ongoing Session">
+          <div className="flex flex-col items-center gap-3 w-fit mx-auto">
+            <div className="flex flex-col items-center gap-1">
+              <p className="text-sm">Session Duration</p>
+              <Select
+                disabled={isRunning}
+                value={autoEnd ? "auto" : "manual"}
+                onValueChange={(value) => setAutoEnd(value === "auto")}
+              >
+                <SelectTrigger className="w-[200px] border border-primary_green text-center flex justify-center items-center text-primary_green font-medium text-md gap-2">
+                  <SelectValue placeholder="Select Timer" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auto">{session?.duration}</SelectItem>
+                  <SelectItem value="manual">Manual Timer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex md:flex-row flex-col-reverse items-center md:gap-3 gap-6">
+              <div className="w-40 flex items-center justify-end">
+                <Button
+                  variant={"outline_green"}
+                  className="text-md"
+                  disabled={!isRunning} // not disabled if paused
+                  onClick={handlePauseResume}
+                >
+                  {!isPaused ? (
+                    <>
+                      <IoMdPause />
+                      Pause Session
+                    </>
+                  ) : (
+                    <>
+                      <IoMdPlay />
+                      Resume Session
+                    </>
+                  )}
+                </Button>
+              </div>
+              <div className="relative">
+                {disableStartButton && (
+                  <div
+                    className=" z-10 w-full h-full absolute rounded-full"
+                    onClick={() => {
+                      if (disableStartButton)
+                        setDisableStatus(`Wait ${wait}s before Ending Session`);
+                    }}
+                  ></div>
+                )}
+                <button
+                  onClick={() => {
+                    handleStartStopSession();
+                  }}
+                  className="md:w-52 md:h-52 w-44 h-44 border-2 border-primary_green bg-light_green rounded-full text-xl font-semibold text-primary_green disabled:opacity-60"
+                  disabled={disableStartButton || (isRunning && autoEnd)}
+                >
+                  {isRunning ? "End Session" : "Start Session"}
+                </button>
+              </div>
+              <div className="flex items-center justify-start gap-2 w-40">
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-200">
+                  <Image
+                    src={student?.profilePicture ?? pfp2}
+                    alt=""
+                    className="object-cover h-12"
+                  />
+                </div>
+                <div className="text-lg">
+                  <p>{student?.displayName}</p>
+                </div>
+              </div>
+            </div>
+            {disableStatus && (
+              <p className="text-xs text-red font-medium">{disableStatus}</p>
+            )}
+            <div className="">
+              <Timer />
+            </div>
+          </div>
+        </ContainerLayout>
+        <ContainerLayout heading="Notes">
+          <div className="flex gap-3 items-center justify-between">
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.currentTarget.value)}
+              placeholder="Write Note"
+              rows={1}
+              className="resize-none border border-light_gray p-2 w-full rounded-md"
+            ></textarea>
+            <button
+              className="grid place-content-center bg-primary_green text-white rounded-md flex-shrink-0 w-8 h-8"
+              onClick={addNote}
+            >
+              <IoMdAdd className="size-5" />
+            </button>
+          </div>
+          <div className="">
+            {noteList
+              ?.sort(
+                (a, b) =>
+                  (b.timestamp as Timestamp).toMillis() -
+                  (a.timestamp as Timestamp).toMillis()
+              )
+              .map((note) => {
+                return (
+                  <div
+                    key={note.id}
+                    className={`flex items-center py-2 text-sm gap-3  ${
+                      userData?.uid === note.receiverId
+                        ? "flex-row-reverse"
+                        : ""
+                    }`}
+                  >
+                    <div
+                      className={`flex-shrink-0 w-8 h-8 rounded-full overflow-hidden bg-slate-200`}
+                    >
+                      <Image
+                        src={
+                          userData?.uid === tutor?.uid
+                            ? tutor?.profilePicture ?? pfp2
+                            : student?.profilePicture ?? pfp2
+                        }
+                        alt=""
+                        className="object-cover h-8"
+                      />
+                    </div>
+                    <p
+                      className={`w-full  ${
+                        userData?.uid === note.receiverId ? "text-right" : ""
+                      }`}
+                    >
+                      {note.content}
+                    </p>
+                    <p className="text-xs flex-shrink-0 text-gray-400">
+                      {(note.timestamp as Timestamp)
+                        .toDate()
+                        .toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
+                    </p>
+                  </div>
+                );
+              })}
+          </div>
+        </ContainerLayout>
+      </div>
+    );
 };
 
 export default TutorTracking;

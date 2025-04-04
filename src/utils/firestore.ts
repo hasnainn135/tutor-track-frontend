@@ -2,8 +2,10 @@ import {
   collection,
   DocumentData,
   getDocs,
+  onSnapshot,
   Query,
   query,
+  Timestamp,
   where,
 } from "@firebase/firestore";
 import { auth, db } from "@/firebase/firebase";
@@ -19,8 +21,10 @@ import {
   FirestoreTimestamp,
   Reviews,
   Session,
+  SessionListenerOptions,
   SessionNotes,
   StudentSchema,
+  TeachingLevel,
   TutorSchema,
 } from "@/types/firebase";
 import {
@@ -230,8 +234,11 @@ export const createSession = async (
   additionalNotes: string,
   chargesPerHour: number
 ): Promise<void> => {
-  const docRef = collection(db, "sessions");
+  const docCall = collection(db, "sessions");
+  const docRef = doc(docCall);
   const docId = docRef.id;
+  console.log("docRef.id = ", docRef.id);
+
   try {
     const data: Session = {
       id: docId,
@@ -253,8 +260,11 @@ export const createSession = async (
       sessionNotes: [],
       chargesPerHour: chargesPerHour,
       sessionDate: date,
+      start: false,
+      end: false,
+      autoEnd: true,
     };
-    await addDoc(docRef, data);
+    await setDoc(docRef, data);
   } catch (e) {
     throw e;
   }
@@ -278,6 +288,71 @@ export const getSessions = async (
   }
 };
 
+export const getSessionById = async (
+  sessionId: string
+): Promise<Session | null> => {
+  try {
+    const sessionRef = doc(db, "sessions", sessionId);
+    const sessionSnap = await getDoc(sessionRef);
+
+    if (sessionSnap.exists()) {
+      return sessionSnap.data() as Session;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching session:", error);
+    throw error;
+  }
+};
+
+export const startSessionInFirestore = async (sessionId: string) => {
+  const sessionRef = doc(db, "sessions", sessionId);
+  await updateDoc(sessionRef, {
+    start: true,
+    actualStartTime: new Date().toISOString(),
+  });
+};
+
+export const endSessionInFirestore = async (sessionId: string) => {
+  const sessionRef = doc(db, "sessions", sessionId);
+  await updateDoc(sessionRef, {
+    start: false,
+    end: true,
+    actualEndTime: new Date().toISOString(),
+  });
+};
+
+export const listenToSessionChanges = ({
+  sessionId,
+  isRunning,
+  onStart,
+  onEnd,
+}: {
+  sessionId: string;
+  isRunning: boolean;
+  onStart: (actualStartTime: string | null) => void;
+  onEnd: () => void;
+}) => {
+  const sessionRef = doc(db, "sessions", sessionId);
+
+  const unsubscribe = onSnapshot(sessionRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const sessionData = docSnap.data() as Session;
+
+      if (sessionData.start && !isRunning) {
+        onStart(sessionData.actualStartTime);
+      }
+
+      if (sessionData.end) {
+        onEnd();
+      }
+    }
+  });
+
+  return unsubscribe;
+};
+
 export const addSessionNote = async (
   sessionId: string,
   senderId: string,
@@ -293,7 +368,7 @@ export const addSessionNote = async (
       senderId,
       receiverId,
       content,
-      timestamp: new Date(),
+      timestamp: Timestamp.now(),
     };
     await setDoc(docRef, note);
   } catch (e) {
@@ -335,6 +410,20 @@ export const completeSession = async (sessionId: string): Promise<void> => {
   }
 };
 
+export const setAutoEndSession = async (
+  sessionId: string,
+  auto: boolean
+): Promise<void> => {
+  try {
+    const docRef = doc(db, "sessions", sessionId);
+    await updateDoc(docRef, {
+      autoEnd: auto,
+    });
+  } catch (e) {
+    throw e;
+  }
+};
+
 export const updateSessionAttendance = async (
   sessionId: string,
   isAbsent: boolean,
@@ -360,7 +449,7 @@ export const updateSessionAttendance = async (
 export const addReview = async (
   studentId: string,
   studentName: string,
-  studentPhotoURL: string,
+  studentPhotoURL: string | null,
   tutorId: string,
   rating: number,
   content: string
@@ -375,7 +464,7 @@ export const addReview = async (
       reviewerName: studentName,
       reviewerPhotoURL: studentPhotoURL,
       rating: rating,
-      timestamp: new Date(),
+      timestamp: Timestamp.now(),
       content: content,
     };
     await setDoc(docRef, data);
@@ -415,4 +504,146 @@ export const timestampToDateOnly = (
   }
 
   return new Date(jsDate.getFullYear(), jsDate.getMonth(), jsDate.getDate());
+};
+
+// Function to parse a duration in the format "1 hour 30 minutes", "30m", "2h 30m", etc.
+export const parseDuration = (duration: string) => {
+  // Match the format "X hours Y minutes", "Xh Ym", "Xm", "X h", etc.
+  const parts = duration.match(/(\d+)\s*(h|hour|hrs|m|min|minutes?)/gi);
+
+  if (!parts) return 0;
+
+  let totalMinutes = 0;
+
+  // Loop through each part to convert to total minutes
+  parts.forEach((part) => {
+    const match = part.trim().match(/(\d+)\s*(h|hour|hrs|m|min|minutes?)/i);
+    if (match) {
+      const value = parseInt(match[1]);
+      const unit = match[2].toLowerCase();
+
+      if (unit.includes("h")) {
+        totalMinutes += value * 60; // Convert hours to minutes
+      } else if (unit.includes("m")) {
+        totalMinutes += value; // Direct minutes
+      }
+    }
+  });
+
+  return totalMinutes;
+};
+
+/**
+ * Add a new teaching level (and subjects) to the tutor
+ */
+export const addTeachingLevel = async (
+  tutorId: string,
+  newLevel: TeachingLevel
+) => {
+  try {
+    const tutorRef = doc(db, "users", tutorId);
+
+    await updateDoc(tutorRef, {
+      teachingLevels: arrayUnion(newLevel),
+    });
+  } catch (error) {
+    console.error("Error adding teaching level:", error);
+    throw error;
+  }
+};
+
+/**
+ * Update subjects for a specific level
+ * (replaces subjects array for that level)
+ */
+export const updateTeachingLevelSubjects = async (
+  tutorId: string,
+  levelName: string,
+  newSubjects: string[]
+) => {
+  try {
+    const tutorRef = doc(db, "users", tutorId);
+    const tutorSnap = await getDoc(tutorRef);
+
+    if (!tutorSnap.exists()) {
+      throw new Error("Tutor not found");
+    }
+
+    const tutorData = tutorSnap.data() as TutorSchema;
+    const updatedLevels = tutorData.teachingLevels.map((level) =>
+      level.level === levelName ? { ...level, subjects: newSubjects } : level
+    );
+
+    await updateDoc(tutorRef, {
+      teachingLevels: updatedLevels,
+    });
+  } catch (error) {
+    console.error("Error updating teaching level subjects:", error);
+    throw error;
+  }
+};
+
+/**
+ * Remove a teaching level completely
+ */
+export const removeTeachingLevel = async (
+  tutorId: string,
+  levelName: string
+) => {
+  try {
+    const tutorRef = doc(db, "users", tutorId);
+    const tutorSnap = await getDoc(tutorRef);
+
+    if (!tutorSnap.exists()) {
+      throw new Error("Tutor not found");
+    }
+
+    const tutorData = tutorSnap.data() as TutorSchema;
+    const updatedLevels = tutorData.teachingLevels.filter(
+      (level) => level.level !== levelName
+    );
+
+    await updateDoc(tutorRef, {
+      teachingLevels: updatedLevels,
+    });
+  } catch (error) {
+    console.error("Error removing teaching level:", error);
+    throw error;
+  }
+};
+
+/**
+ * Remove a subject from a specific level
+ */
+export const removeSubjectFromLevel = async (
+  tutorId: string,
+  levelName: string,
+  subject: string
+) => {
+  try {
+    const tutorRef = doc(db, "users", tutorId);
+    const tutorSnap = await getDoc(tutorRef);
+
+    if (!tutorSnap.exists()) {
+      throw new Error("Tutor not found");
+    }
+
+    const tutorData = tutorSnap.data() as TutorSchema;
+    const updatedLevels = tutorData.teachingLevels.map((level) => {
+      if (level.level === levelName) {
+        return {
+          ...level,
+          subjects: level.subjects.filter((subj) => subj !== subject),
+        };
+      }
+      return level;
+    });
+
+    await updateDoc(tutorRef, {
+      teachingLevels: updatedLevels,
+    });
+  } catch (error) {
+    console.error("Error removing subject from teaching level:", error);
+    throw error;
+  }
 };

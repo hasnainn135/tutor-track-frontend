@@ -2,7 +2,12 @@ import React, { FC, useEffect, useState } from "react";
 import ContainerLayout from "../layouts/ContainerLayout";
 import useAuthState from "@/states/AuthState";
 import { Session, StudentSchema, TutorSchema } from "@/types/firebase";
-import { getMyStudents, getMyTutors, getSessions } from "@/utils/firestore";
+import {
+  getMyStudents,
+  getMyTutors,
+  getSessions,
+  parseDuration,
+} from "@/utils/firestore";
 import SessionCard from "@/components/ui/SessionCard";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -35,23 +40,6 @@ const Dashboard: FC = () => {
   >({});
   const [earings, setEarings] = useState<number>(0);
 
-  const parseDurationString = (duration: string): number => {
-    let totalMinutes = 0;
-
-    const hourMatch = duration.match(/(\d+)\s*hour/);
-    const minuteMatch = duration.match(/(\d+)\s*minute/);
-
-    if (hourMatch) {
-      totalMinutes += parseInt(hourMatch[1], 10) * 60;
-    }
-
-    if (minuteMatch) {
-      totalMinutes += parseInt(minuteMatch[1], 10);
-    }
-
-    return totalMinutes;
-  };
-
   const formatMinutesToHours = (minutes: number): string => {
     const hrs = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -67,7 +55,7 @@ const Dashboard: FC = () => {
         const completedSessions = sessions.filter(
           (s) => s.status === "completed"
         );
-        setTotalSessionsCompleted(completedSessions);
+        // setTotalSessionsCompleted(completedSessions);
         setMyStds(stds);
 
         const sessionCounts: Record<string, number> = {};
@@ -75,7 +63,7 @@ const Dashboard: FC = () => {
 
         for (const session of completedSessions) {
           const tutorId = session.tutorId;
-          const duration = parseDurationString(session.duration); // returns minutes
+          const duration = parseDuration(session.duration); // returns minutes
 
           sessionCounts[tutorId] = (sessionCounts[tutorId] || 0) + 1;
           totalMinutesMap[tutorId] = (totalMinutesMap[tutorId] || 0) + duration;
@@ -98,12 +86,16 @@ const Dashboard: FC = () => {
     const gettotalSessions = async () => {
       try {
         const sessions = await getSessions(tutorData?.uid, "tutor");
+        const upcomingSeesions = [...totalSessionsUpcoming];
+        const completedSeesions = [...totalSessionsCompleted];
         sessions.map((session) => {
-          if (session.status === "completed")
-            setTotalSessionsCompleted(sessions);
-          if (session.status === "incomplete")
-            setTotalSessionsUpcoming(sessions);
+          if (session.status === "completed") completedSeesions.push(session);
+          if (session.status === "incomplete") {
+            upcomingSeesions.push(session);
+          }
         });
+        setTotalSessionsCompleted(completedSeesions);
+        setTotalSessionsUpcoming(upcomingSeesions);
       } catch (error) {
         console.error("Error fetching sessions:", error);
       }
@@ -146,13 +138,13 @@ const Dashboard: FC = () => {
             </div>
             <div className="flex flex-col gap-3 w-full">
               <div className="w-full flex gap-3">
-                <div className="w-full bg-white opacity-80 backdrop-blur-xl rounded-xl text-center py-5 px-20">
+                <div className="w-full bg-white opacity-80 backdrop-blur-xl rounded-xl text-center py-5 px-4">
                   <p className="text-xl font-bold text-primary_green">
                     {totalSessionsCompleted.length}
                   </p>
                   <p>Completed Sessions</p>
                 </div>
-                <div className="w-full  bg-white opacity-80 backdrop-blur-xl rounded-xl text-center py-5 px-20">
+                <div className="w-full  bg-white opacity-80 backdrop-blur-xl rounded-xl text-center py-5 px-4">
                   <p className="text-xl font-bold text-primary_green">
                     {totalSessionsUpcoming.length}
                   </p>
@@ -160,13 +152,13 @@ const Dashboard: FC = () => {
                 </div>
               </div>
               <div className="w-full flex gap-3">
-                <div className="bg-white opacity-80 backdrop-blur-xl rounded-xl text-center py-5 px-20">
+                <div className="w-full bg-white opacity-80 backdrop-blur-xl rounded-xl text-center py-5 px-4">
                   <p className="text-xl font-bold text-primary_green">
                     £{earings}
                   </p>
                   <p>Total Earnings</p>
                 </div>
-                <div className="bg-white opacity-80 backdrop-blur-xl rounded-xl text-center py-5 px-20">
+                <div className="w-full bg-white opacity-80 backdrop-blur-xl rounded-xl text-center py-5 px-4">
                   <p className="text-xl font-bold text-primary_green">
                     {myStds.length}
                   </p>
@@ -177,29 +169,35 @@ const Dashboard: FC = () => {
           </div>
         </ContainerLayout>
         <ContainerLayout heading="Upcoming Sessions">
-          <div className=" overflow-x-scroll  flex items-center gap-3 max-w-[1060px] py-3">
-            {totalSessionsUpcoming.length > 0 ? (
-              totalSessionsUpcoming.map((session, i) => (
-                <SessionCard key={session.id} session={session} index={i} />
-              ))
-            ) : (
-              <p>No Upcoming Sessiosn</p>
-            )}
+          <div className="w-full overflow-x-scroll">
+            <div className=" flex   max-w-[100px]  gap-3 py-3">
+              {totalSessionsUpcoming.length > 0 ? (
+                totalSessionsUpcoming.map((session, i) => (
+                  <div className="min-w-72 " key={session.id}>
+                    <SessionCard session={session} index={i} />
+                  </div>
+                ))
+              ) : (
+                <p>No Upcoming Sessiosn</p>
+              )}
+            </div>
           </div>
         </ContainerLayout>
-        <ContainerLayout heading="Your Tutors">
-          <div className="w-full flex justify-end px-3">
+        <ContainerLayout>
+          <div className="w-full flex justify-between items-center px-3">
+            <h2 className="font-semibold text-lg sm:text-xl ">Your Students</h2>
+
             <Link href={"/tutor/add-student"} className="">
               <Button variant={"outline_green"} className="w-full">
                 Add Student
               </Button>
             </Link>
           </div>
-          <div className="flex items-center gap-3 overflow-x-scroll max-w-[1060px] py-3">
+          <div className="flex overflow-x-scroll items-center w-full gap-3 py-3">
             {myStds.map((std) => (
               <div
                 key={std.uid}
-                className="w-52 h-72 border flex-col flex justify-between border-light_gray rounded-lg bg-white overflow-hidden py-4"
+                className="w-52 h-72 flex-shrink-0 border flex-col flex justify-between border-light_gray rounded-lg bg-white overflow-hidden py-4"
               >
                 <div className="w-full  text-center">
                   <div className="mx-auto w-9 h-9 rounded-full overflow-hidden bg-slate-200">

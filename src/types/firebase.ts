@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase/firestore";
+
 export interface FirestoreTimestamp {
   seconds: number;
   nanoseconds: number;
@@ -17,7 +19,7 @@ interface UserSchema {
   country: string | null;
 }
 
-interface TeachingLevel {
+export interface TeachingLevel {
   level: string;
   subjects: string[];
 }
@@ -26,9 +28,9 @@ export interface Reviews {
   id: string;
   reviewerID: string;
   reviewerName: string;
-  reviewerPhotoURL: string;
+  reviewerPhotoURL: string | null;
   rating: number;
-  timestamp: Date;
+  timestamp: Timestamp;
   content: string;
 }
 
@@ -80,7 +82,7 @@ export interface SessionNotes {
   senderId: string;
   receiverId: string;
   content: string;
-  timestamp: Date;
+  timestamp: Timestamp;
 }
 
 export interface Session {
@@ -103,10 +105,19 @@ export interface Session {
   chargesPerHour: number;
   sessionNotes: SessionNotes[];
   sessionDate: Date;
+  start: boolean;
+  end: boolean;
+  autoEnd: boolean;
 }
 
-// Define a custom FirestoreTimestamp type
 export interface FirestoreTimestamp {
   seconds: number;
   nanoseconds: number;
+}
+
+export interface SessionListenerOptions {
+  sessionId: string;
+  onStart: () => void;
+  onEnd: () => void;
+  isRunning: boolean;
 }

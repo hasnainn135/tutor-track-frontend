@@ -1,4 +1,4 @@
-import React, { FormEvent, useEffect, useState } from "react";
+import React, { FormEvent, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import pfp2 from "@/assets/pfp2.png";
 import { updatePassword, updateProfile } from "firebase/auth";
@@ -8,22 +8,29 @@ import useAuthState from "@/states/AuthState";
 import { Button } from "@/components/ui/button";
 import { FiMinusSquare } from "react-icons/fi";
 import Link from "next/link";
-import { TutorSchema, WeeklySchedule } from "@/types/firebase";
+import { TeachingLevel, TutorSchema, WeeklySchedule } from "@/types/firebase";
 import { useRouter } from "next/router";
-import { deleteMyUser } from "@/utils/firestore";
+import {
+  addTeachingLevel,
+  deleteMyUser,
+  removeSubjectFromLevel,
+  removeTeachingLevel,
+  updateTeachingLevelSubjects,
+} from "@/utils/firestore";
+import { IoMdAdd, IoMdRemove } from "react-icons/io";
 
-const data = [
+const data: TeachingLevel[] = [
   {
     level: "A levels",
-    subject: ["Mathematics", "Physics", "French", "Chemistry"],
+    subjects: ["Mathematics", "Physics", "French", "Chemistry"],
   },
   {
     level: "IGCSE",
-    subject: ["Mathematics", "Physics", "French"],
+    subjects: ["Mathematics", "Physics", "French"],
   },
   {
     level: "GCSE",
-    subject: ["Mathematics", "Physics", "French", "Chemistry", "Spanish"],
+    subjects: ["Mathematics", "Physics", "French", "Chemistry", "Spanish"],
   },
 ];
 
@@ -42,10 +49,12 @@ const TutorSettings = () => {
   const tutor = userData as TutorSchema;
   const router = useRouter();
   const [error, setError] = useState("");
+  const [selectedLevel, setSelectedLevel] = useState<string>("");
 
   if (!user) return <></>;
 
-  console.log(userData);
+  const addLevelRef = useRef<HTMLDialogElement>(null);
+  const addSubjectRef = useRef<HTMLDialogElement>(null);
 
   const [slots, setSlots] = useState<WeeklySchedule[] | null>(
     tutor?.weeklySchedule && tutor.weeklySchedule.length > 0
@@ -231,6 +240,95 @@ const TutorSettings = () => {
 
   return (
     <div className="flex justify-center px-4">
+      <dialog ref={addLevelRef} className="rounded-lg overflow-hidden bg-white">
+        <div className="p-4 min-w-96">
+          <form
+            className="flex flex-col gap-3"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const level = formData.get("level") as string;
+              const newTeachingLevel: TeachingLevel = {
+                level: level,
+                subjects: [],
+              };
+              try {
+                await addTeachingLevel(tutor.uid, newTeachingLevel);
+                addLevelRef.current?.close();
+                window.location.reload();
+              } catch (e) {
+                console.log(e);
+              }
+            }}
+          >
+            <input
+              type="text"
+              required
+              name="level"
+              placeholder="Level"
+              className="p-2 border border-light_gray rounded-md"
+            />
+            <Button type="submit">Add Level</Button>
+            <Button
+              variant={"outline_green"}
+              onClick={() => addLevelRef.current?.close()}
+            >
+              Cancel
+            </Button>
+          </form>
+        </div>
+      </dialog>
+      <dialog
+        ref={addSubjectRef}
+        className="rounded-lg overflow-hidden bg-white"
+      >
+        <div className="p-4 min-w-96">
+          <h3 className="pb-4 font-medium">Add Subject for {selectedLevel}</h3>
+          <form
+            className="flex flex-col gap-3"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const subject = formData.get("subject") as string;
+              const subjects: string[] = [
+                ...(tutor.teachingLevels.find(
+                  (level) => level.level === selectedLevel
+                )?.subjects ?? []),
+              ];
+              if (!subjects.includes(subject)) subjects.push(subject);
+
+              try {
+                await updateTeachingLevelSubjects(
+                  tutor.uid,
+                  selectedLevel,
+                  subjects
+                );
+                addSubjectRef.current?.close();
+                window.location.reload();
+              } catch (e) {
+                console.log(e);
+              }
+            }}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <input
+                type="text"
+                required
+                name="subject"
+                placeholder="Add Subject"
+                className=" w-full p-2 border border-light_gray rounded-md"
+              />
+            </div>
+            <Button type="submit">Add Subject</Button>
+            <Button
+              variant={"outline_green"}
+              onClick={() => addSubjectRef.current?.close()}
+            >
+              Cancel
+            </Button>
+          </form>
+        </div>
+      </dialog>
       <form
         onSubmit={handleSubmit}
         className="flex flex-col w-[40rem] h-screen mt-2 gap-3"
@@ -372,27 +470,72 @@ const TutorSettings = () => {
               <div className="p-3">Levels</div>
               <div className="border-l border-light_gray p-3">Subjects</div>
             </div>
-            {data.map((level) => (
+            {tutor.teachingLevels.map((level) => (
               <div
                 key={level.level}
                 className="grid grid-cols-[160px_1fr] border-t border-light_gray"
               >
-                <div className="font-semibold p-3 flex items-center text-justify">
+                <div className="font-semibold p-3 flex items-center text-justify gap-2">
                   {level.level}
+                  <button
+                    title="add subject"
+                    className="grid place-content-center border border-red text-red rounded-sm flex-shrink-0 w-5 h-5"
+                    onClick={async () => {
+                      await removeTeachingLevel(tutor.uid, level.level);
+                      window.location.reload();
+                    }}
+                  >
+                    <IoMdRemove className="size-3" />
+                  </button>
                 </div>
                 <div className="p-3 flex items-center gap-2 flex-wrap border-l border-light_gray">
-                  {level.subject.map((sub) => (
+                  {level.subjects.map((sub) => (
                     <div
                       key={sub}
-                      className="bg-primary_green py-1.5 px-3 text-white rounded-lg"
+                      className="flex items-center justify-between gap-2 bg-primary_green py-1.5 px-3 text-white rounded-lg"
                     >
                       {sub}
+                      <button
+                        className=""
+                        onClick={async () => {
+                          await removeSubjectFromLevel(
+                            tutor.uid,
+                            level.level,
+                            sub
+                          );
+                          window.location.reload();
+                        }}
+                      >
+                        <IoMdRemove className="size-4" />
+                      </button>
                     </div>
                   ))}
+                  <button
+                    title="add subject"
+                    className="grid place-content-center border border-primary_green text-primary_green rounded-md flex-shrink-0 w-6 h-6"
+                    onClick={() => {
+                      addSubjectRef.current?.showModal();
+                      setSelectedLevel(level.level);
+                    }}
+                  >
+                    <IoMdAdd className="size-4" />
+                  </button>
                 </div>
               </div>
             ))}
           </div>
+          <div className="grid grid-cols-[160px_1fr]  text-primary_green text-sm  font-medium text-center">
+            <button
+              className="p-3 hover:underline"
+              onClick={() => {
+                addLevelRef.current?.showModal();
+              }}
+            >
+              Add Level
+            </button>
+            {/* <div className=" p-3">Subjects</div> */}
+          </div>
+
           {/* TIME SLOTS */}
           <div className="">
             <p className="py-3 font-semibold">Set Time Slot</p>

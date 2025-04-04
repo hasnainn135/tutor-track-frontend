@@ -13,9 +13,10 @@ import useAuthState from "@/states/AuthState";
 import {
   getTutorById,
   getStudentById,
-  updateSessionAttendance,
   timestampToDateOnly,
   cancelSession,
+  completeSession,
+  updateSessionAttendance,
 } from "@/utils/firestore";
 import {
   FirestoreTimestamp,
@@ -23,11 +24,15 @@ import {
   StudentSchema,
   TutorSchema,
 } from "@/types/firebase";
+import Image from "next/image";
+import pfp2 from "@/assets/pfp2.png";
 
 const SessionListItem = ({ session }: { session: Session }) => {
   const [tutor, setTutor] = useState<TutorSchema | null>(null);
   const [student, setStudent] = useState<StudentSchema | null>(null);
-  const [sessionOngoing, setSessionOngoing] = useState<boolean>(false);
+  // const [session.start, setSessionOngoing] = useState<boolean>(false);
+  const [showStartButton, setShowStartButton] = useState(false);
+
   const { user, userData } = useAuthState();
 
   //fetch Tutor or Student data
@@ -60,10 +65,6 @@ const SessionListItem = ({ session }: { session: Session }) => {
 
     // Create today's date with extracted time
     const now = new Date();
-    console.log(timeString);
-    console.log(
-      new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minute)
-    );
 
     return new Date(
       now.getFullYear(),
@@ -104,51 +105,132 @@ const SessionListItem = ({ session }: { session: Session }) => {
 
       const now = new Date();
 
-      // Determine if session is currently ongoing
-      console.log(sessionStart);
-      console.log(sessionDate);
-      console.log(sessionEnd);
-      console.log(now);
-      // console.log("sessionDate", sessionDate);
-
       if (now >= sessionStart && now < sessionDate) {
-        setSessionOngoing(true);
+        // setSessionOngoing(true);
 
         const msUntilEnd = sessionDate.getTime() - now.getTime();
         const timeout = setTimeout(() => {
-          setSessionOngoing(false);
+          // setSessionOngoing(false);
         }, msUntilEnd);
 
         // Clean up timeout on unmount or session change
         return () => clearTimeout(timeout);
       } else {
-        setSessionOngoing(false);
+        // setSessionOngoing(false);
       }
     } else {
-      setSessionOngoing(false);
+      // setSessionOngoing(false);
     }
   }, [session]);
+
+  useEffect(() => {
+    const autoCompleteSession = async () => {
+      if (
+        session.status === "incomplete" &&
+        session.bookingStartTime &&
+        session.sessionDate &&
+        session.duration
+      ) {
+        const sessionDate = timestampToDateOnly(session.sessionDate) as Date;
+
+        const [startHour, startMinute] = session.bookingStartTime
+          .split(":")
+          .map(Number);
+        const startTime = new Date(sessionDate);
+        startTime.setHours(startHour, startMinute, 0, 0);
+
+        // Duration is like "09:30 PM", parse it
+        const [durationTime, meridiem] = session.duration.trim().split(" ");
+        const [durationHourRaw, durationMinute] = durationTime
+          .split(":")
+          .map(Number);
+        let durationHour = durationHourRaw;
+
+        if (meridiem.toLowerCase() === "pm" && durationHour !== 12)
+          durationHour += 12;
+        if (meridiem.toLowerCase() === "am" && durationHour === 12)
+          durationHour = 0;
+
+        const endTime = new Date(sessionDate);
+        endTime.setHours(durationHour, durationMinute, 0, 0);
+
+        const now = new Date();
+
+        if (now > endTime || sessionDate < new Date(now.toDateString())) {
+          try {
+            await completeSession(session.id);
+            //reload page after marking session complete
+            window.location.reload();
+            console.log("Session marked as completed automatically.");
+          } catch (err) {
+            console.error("Failed to mark session complete:", err);
+          }
+        }
+      }
+    };
+
+    autoCompleteSession();
+  }, [session]);
+
+  // Enable Strt btn for tutor
+  useEffect(() => {
+    const today = new Date();
+    const sessionDate = timestampToDateOnly(session.sessionDate);
+
+    const todayString = today.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "2-digit",
+    });
+
+    const sessionDateString = sessionDate.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "2-digit",
+    });
+
+    if (todayString === sessionDateString) {
+      // Now check the time
+      const [sessionHour, sessionMinute] = session.bookingStartTime
+        .split(":")
+        .map(Number);
+
+      const sessionTimeInMinutes = sessionHour * 60 + sessionMinute;
+      const currentTimeInMinutes = today.getHours() * 60 + today.getMinutes();
+
+      if (currentTimeInMinutes >= sessionTimeInMinutes && !session.end) {
+        setShowStartButton(true);
+      } else {
+        setShowStartButton(false); // hide if not yet
+      }
+    } else {
+      setShowStartButton(false); // hide if different date
+    }
+  }, []);
 
   const cancelCurrentSession = async () => {
     try {
       await cancelSession(session.id);
     } catch (e) {
-      console.log(e);
-      console.log(session.status);
+      console.error(e);
     }
   };
-  const markTutorAttendance = () => {
-    console.log(session.isTutorAbsent);
+  const markTutorAttendance = async () => {
+    await updateSessionAttendance(session.id, !session.isTutorAbsent, "tutor");
   };
-  const markStudentAttendance = () => {
-    console.log(session.isStudentAbsent);
+  const markStudentAttendance = async () => {
+    await updateSessionAttendance(
+      session.id,
+      !session.isStudentAbsent,
+      "student"
+    );
   };
 
   if (userData?.role === "student")
     return (
       <div
         className={`h-16 rounded-md border ${
-          sessionOngoing ? "border-bright_green" : "border-light_gray"
+          session.start ? "border-bright_green" : "border-light_gray"
         } bg-[#FBFBFB] overflow-hidden flex items-center`}
       >
         {/* LEFT COLORED BORDER */}
@@ -157,7 +239,7 @@ const SessionListItem = ({ session }: { session: Session }) => {
             session.status === "canceled"
               ? "bg-red"
               : timestampToDateOnly(session.sessionDate).toDateString() ===
-                  new Date().toDateString() || sessionOngoing
+                  new Date().toDateString() || session.start
               ? "bg-bright_green"
               : session.isTutorAbsent
               ? "bg-primary_green"
@@ -167,10 +249,10 @@ const SessionListItem = ({ session }: { session: Session }) => {
         <div className="flex items-center justify-between px-2 py-3 w-full">
           <div className="flex items-center gap-6">
             {/* Tutor INFO */}
-            <div className="flex items-center justify-start gap-2 w-48">
+            <div className="flex items-center justify-start gap-2 w-40">
               <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-200">
-                <img
-                  src={tutor?.profilePicture ?? undefined}
+                <Image
+                  src={tutor?.profilePicture ?? pfp2}
                   alt=""
                   className="object-cover h-9"
                 />
@@ -223,7 +305,7 @@ const SessionListItem = ({ session }: { session: Session }) => {
               <p className="text-sm">Session Limit</p>
               <p
                 className={`text-lg font-semibold ${
-                  sessionOngoing && "text-bright_green"
+                  session.start && "text-bright_green"
                 }`}
               >
                 {session.status === "canceled" ? "-" : session.duration}
@@ -236,8 +318,13 @@ const SessionListItem = ({ session }: { session: Session }) => {
                 View Notes
               </Button>
             </Link>
-          ) : sessionOngoing ? (
-            <p className="text-bright_green font-semibold">Session Ongoing</p>
+          ) : session.start ? (
+            <Link
+              href={`/student/sessions/${session.id}/tracking`}
+              className=""
+            >
+              <Button variant={"outline_green"}>Session Ongoing</Button>
+            </Link>
           ) : (
             ""
           )}
@@ -253,7 +340,7 @@ const SessionListItem = ({ session }: { session: Session }) => {
                   className=" bg-white border-none"
                   align="end"
                 >
-                  {session.status === "completed" || sessionOngoing ? (
+                  {session.status === "completed" || session.start ? (
                     <DropdownMenuItem
                       className="cursor-pointer"
                       onClick={markTutorAttendance}
@@ -280,45 +367,11 @@ const SessionListItem = ({ session }: { session: Session }) => {
       </div>
     );
 
-  const [showStartButton, setShowStartButton] = useState(false);
-
-  // useEffect(() => {
-  //   const checkTime = () => {
-  //     const now = new Date();
-  //     const sessionDate = new Date(session.createdAt);
-
-  //     // Convert session_time ("12:00 PM") to 24-hour format
-  //     const timeParts = session.createdAt.match(/(\d+):(\d+) (\w+)/);
-  //     if (!timeParts) return;
-
-  //     let hours = parseInt(timeParts[1]);
-  //     const minutes = parseInt(timeParts[2]);
-  //     const period = timeParts[3];
-
-  //     if (period === "PM" && hours !== 12) hours += 12;
-  //     if (period === "AM" && hours === 12) hours = 0;
-
-  //     sessionDate.setHours(hours, minutes, 0, 0); // Set session time
-
-  //     // Calculate time difference in minutes
-  //     const timeDiff = (sessionDate.getTime() - now.getTime()) / 60000;
-
-  //     // Show button if session time is in the next 10 minutes
-  //     setShowStartButton(timeDiff <= 10 && timeDiff > 0);
-  //   };
-
-  //   // Check every minute
-  //   checkTime();
-  //   const interval = setInterval(checkTime, 60000);
-
-  //   return () => clearInterval(interval); // Cleanup interval on unmount
-  // }, [session]);
-
   if (userData?.role === "tutor")
     return (
       <div
         className={`h-16 rounded-md border ${
-          sessionOngoing ? "border-bright_green" : "border-light_gray"
+          session.start ? "border-bright_green" : "border-light_gray"
         } bg-[#FBFBFB] overflow-hidden flex items-center`}
       >
         {/* LEFT COLORED BORDER */}
@@ -327,7 +380,7 @@ const SessionListItem = ({ session }: { session: Session }) => {
             session.status === "canceled"
               ? "bg-red"
               : timestampToDateOnly(session.sessionDate).toDateString() ===
-                  new Date().toDateString() || sessionOngoing
+                  new Date().toDateString() || session.start
               ? "bg-bright_green"
               : session.isStudentAbsent
               ? "bg-primary_green"
@@ -337,16 +390,16 @@ const SessionListItem = ({ session }: { session: Session }) => {
         <div className="flex items-center justify-between px-2 py-3 w-full">
           <div className="flex items-center gap-6">
             {/* student INFO */}
-            <div className="flex items-center justify-start gap-2 w-48">
+            <div className="flex items-center justify-start gap-2 w-40 overflow-hidden ">
               <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-200">
-                <img
-                  src={student?.profilePicture ?? undefined}
+                <Image
+                  src={student?.profilePicture ?? pfp2}
                   alt=""
                   className="object-cover h-9"
                 />
               </div>
               <div className="">
-                <p>{student?.displayName}</p>
+                <p className="line-clamp-1">{student?.displayName}</p>
                 {session.status === "completed" && session.isStudentAbsent && (
                   <p className="text-sm text-primary_green font-semibold">
                     Marked Absent
@@ -393,7 +446,7 @@ const SessionListItem = ({ session }: { session: Session }) => {
               <p className="text-sm">Session Limit</p>
               <p
                 className={`text-lg font-semibold ${
-                  sessionOngoing && "text-bright_green"
+                  session.start && "text-bright_green"
                 }`}
               >
                 {session.status === "canceled" ? "-" : session.duration}
@@ -406,15 +459,14 @@ const SessionListItem = ({ session }: { session: Session }) => {
                 View Notes
               </Button>
             </Link>
-          ) : session.status === "incomplete" &&
-            timestampToDateOnly(session.sessionDate).toDateString() ===
-              new Date().toDateString() &&
-            showStartButton ? (
-            <Link href={``}>
+          ) : session.status === "incomplete" && session.start ? (
+            <Link href={`/tutor/sessions/${session.id}/tracking`} className="">
+              <Button variant={"outline_green"}>Session Ongoing</Button>
+            </Link>
+          ) : showStartButton ? (
+            <Link href={`/tutor/sessions/${session.id}/tracking`}>
               <Button size="sm">Start Session</Button>
             </Link>
-          ) : sessionOngoing ? (
-            <p className="text-bright_green font-semibold">Session Ongoing</p>
           ) : null}
           <div className="">
             {session.status === "canceled" ? (
@@ -428,7 +480,7 @@ const SessionListItem = ({ session }: { session: Session }) => {
                   className=" bg-white border-none"
                   align="end"
                 >
-                  {session.status === "completed" || sessionOngoing ? (
+                  {session.status === "completed" || session.start ? (
                     <DropdownMenuItem
                       className="cursor-pointer"
                       onClick={markStudentAttendance}

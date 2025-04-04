@@ -45,7 +45,7 @@ const AddTutor: FC = () => {
           </div>
         </ContainerLayout>
 
-        <ContainerLayout heading="Add Tutor" margin="0">
+        <ContainerLayout heading="Add Student" margin="0">
           {allstd?.map((std) => {
             if (searchVal)
               if (std?.email?.toLowerCase().includes(searchVal.toLowerCase()))

@@ -1,10 +1,26 @@
 import LoadingSpinner from "@/components/ui/loading-spinner";
 // import { useUsers } from "@/hooks/useUsers";
 import ContainerLayout from "@/pages/layouts/ContainerLayout";
-import { Session, SessionNotes, TutorSchema } from "@/types/firebase";
+import useAuthState from "@/states/AuthState";
+import {
+  Session,
+  SessionNotes,
+  StudentSchema,
+  TutorSchema,
+} from "@/types/firebase";
+import {
+  getSessionById,
+  getSessionNotes,
+  getStudentById,
+  getTutorById,
+  timestampToDateOnly,
+} from "@/utils/firestore";
+import Image from "next/image";
 // import { Notes, SessionsType, TutorType } from "@/types/usertypes";
 import { useRouter } from "next/router";
 import React, { FC, useEffect, useState } from "react";
+import pfp2 from "@/assets/pfp2.png";
+import { Timestamp } from "firebase/firestore";
 
 const StudentNotes: FC = () => {
   const router = useRouter();
@@ -15,44 +31,38 @@ const StudentNotes: FC = () => {
   const [sessionLoading, setSessionLoading] = useState<boolean>(false);
   const [sessionNotFound, setSessionNotFound] = useState<boolean>(false);
   const [tutor, setTutor] = useState<TutorSchema | undefined>(undefined);
+  const [student, setStudent] = useState<StudentSchema | undefined>(undefined);
+  const [notes, setNotes] = useState<SessionNotes[]>([]);
 
-  // GET SESSION DATA
-  // useEffect(() => {
-  //   const getSession = async () => {
-  //     setSessionLoading(true);
-  //     try {
-  //       const response = await fetch("/sessions.json");
-  //       if (!response.ok) {
-  //         throw new Error("Failed to load data");
-  //       }
-  //       const allSessions: Session[] = await response.json();
+  const { userData } = useAuthState();
 
-  //       const sessionData: Session | undefined = allSessions.find(
-  //         (session) => session.id === sessionId
-  //       );
+  useEffect(() => {
+    const getSessionData = async () => {
+      try {
+        if (!sessionId) return;
 
-  //       setSession(sessionData);
-  //     } catch (e) {
-  //       setSessionNotFound(true);
-  //     } finally {
-  //       setSessionLoading(false);
-  //     }
-  //   };
+        const sessionData = await getSessionById(sessionId as string);
+        if (sessionData) {
+          setSession(sessionData);
+          const studentData = await getStudentById(sessionData.studentId);
+          studentData && setStudent(studentData);
+          const tutorData = await getTutorById(sessionData.tutorId);
+          tutorData && setTutor(tutorData);
+        }
+      } catch (e) {
+        console.log("error", e);
+      }
+    };
 
-  //   if (loggedInStudent && sessionId) getSession();
-  // }, [sessionId, loggedInStudent]);
+    const fetchNotes = async () => {
+      if (!sessionId) return;
+      const notes = await getSessionNotes(sessionId as string);
+      setNotes(notes);
+    };
 
-  // GET TUTOR DATA
-  // useEffect(() => {
-  //   const getTutor = async () => {
-  //     if (session) {
-  //       const tutorData = await getTutorById(session.tutor_id);
-  //       if (tutorData) setTutor(tutorData);
-  //     }
-  //   };
-
-  //   getTutor();
-  // }, [session]);
+    getSessionData();
+    fetchNotes();
+  }, [sessionId]);
 
   if (sessionLoading)
     return (
@@ -63,69 +73,89 @@ const StudentNotes: FC = () => {
 
   if (sessionNotFound) return <div className="">Session Not Found</div>;
 
-  if (session)
+  if (session && userData)
     return (
       <ContainerLayout heading="Session Notes">
         <div className="flex flex-col gap-1 text-sm">
           <div className="flex items-center justify-start gap-2 font-semibold">
             <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200">
-              <img
-                src={tutor?.profilePicture ?? undefined}
+              <Image
+                src={tutor?.profilePicture ?? pfp2}
                 alt=""
-                className="object-cover h-8"
+                className="object-cover h-8 "
               />
             </div>
             <p>{tutor?.displayName}</p>
           </div>
           <div className="">
-            {new Date(session.sessionDate).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
+            {timestampToDateOnly(session.sessionDate).toLocaleDateString(
+              "en-US",
+              {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              }
+            )}
           </div>
-          <div className="">{session.bookingStartTime}</div>
+          <div className="">
+            Start Time:{" "}
+            <span className="font-semibold">{session.bookingStartTime}</span>
+          </div>
+          <div className="">
+            Session Duration:{" "}
+            <span className="font-semibold">{session.duration}</span>
+          </div>
         </div>
+        <hr className="mt-3 opacity-20" />
         {/* NOTES */}
         <div className="pt-3">
-          {session.sessionNotes ? (
-            session.sessionNotes.map((note: SessionNotes) => {
-              return (
-                <div
-                  key={note.id}
-                  className={`flex items-center py-2 text-sm gap-3  ${
-                    // note.sender_type === "student" ? "flex-row-reverse" : ""
-                    ""
-                  }`}
-                >
+          {notes.length > 0 ? (
+            notes
+              ?.sort(
+                (a, b) =>
+                  (b.timestamp as Timestamp).toMillis() -
+                  (a.timestamp as Timestamp).toMillis()
+              )
+              .map((note: SessionNotes) => {
+                return (
                   <div
-                    className={`flex-shrink-0 w-8 h-8 rounded-full overflow-hidden bg-slate-200`}
-                  >
-                    <img
-                      src={
-                        // note.sender_type === "tutor"
-                        //   ? tutor?.pfp
-                        //   : loggedInStudent?.pfp
-                        ""
-                      }
-                      alt=""
-                      className="object-cover h-8"
-                    />
-                  </div>
-                  <p
-                    className={`w-full  ${
-                      // note.sender_type === "student" ? "text-right" : ""
-                      ""
+                    key={note.id}
+                    className={`flex py-2 text-sm gap-3  ${
+                      note.senderId === userData.uid ? "flex-row-reverse" : ""
                     }`}
                   >
-                    {note.content}
-                  </p>
-                  <p className="text-xs flex-shrink-0 text-gray-400">
-                    {/* {note.time} */}
-                  </p>
-                </div>
-              );
-            })
+                    <div
+                      className={`flex-shrink-0 w-8 h-8 rounded-full overflow-hidden bg-slate-200`}
+                    >
+                      <Image
+                        src={
+                          note.senderId === userData.uid
+                            ? student?.profilePicture ?? pfp2
+                            : tutor?.profilePicture ?? pfp2
+                        }
+                        alt=""
+                        className="object-cover h-8"
+                      />
+                    </div>
+                    <p
+                      className={`w-full  ${
+                        note.senderId === userData.uid ? "text-right" : ""
+                      }`}
+                    >
+                      {note.content}
+                    </p>
+                    <p className="text-xs flex-shrink-0 text-gray-400">
+                      {(note.timestamp as Timestamp)
+                        .toDate()
+                        .toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
+                    </p>
+                  </div>
+                );
+              })
           ) : (
             <div>No Notes Added</div>
           )}
