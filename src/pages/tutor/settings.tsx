@@ -171,9 +171,9 @@ const TutorSettings = () => {
             country !== userData?.country ||
             city !== userData?.city ||
             yoeNumber !== tutor.yearsOfExperience ||
-            cphNumber !== tutor.displayChargesPerHour
+            cphNumber !== tutor.displayChargesPerHour ||
+            displayName !== user.displayName
         ) {
-            console.log("I RAN");
             await updateDoc(doc(db, "users", user.uid), {
                 educationLevel,
                 instituteName: institute,
@@ -182,6 +182,7 @@ const TutorSettings = () => {
                 city,
                 yearsOfExperience: yoeNumber,
                 displayChargesPerHour: cphNumber,
+                displayName: displayName,
             });
         }
 
