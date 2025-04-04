@@ -27,9 +27,10 @@ const AddTutor: FC = () => {
     fetchTutors();
   }, []);
 
-  const handleButtonClick = async (tutorID:string, studentID:string) => {
+  const handleButtonClick = async (tutorID:string, studentID:string, displayChargesPerHour:number | null) => {
     setIsLoading(true); 
-    await addUser(tutorID, studentID, 500); //TUTOR'S PER HOUR CHARGES
+    const charges = displayChargesPerHour? displayChargesPerHour : 100;
+    await addUser(tutorID, studentID, charges); //TUTOR'S PER HOUR CHARGES
     router.push("/student/my-tutors");
     setIsLoading(false);
   }
@@ -93,7 +94,7 @@ const AddTutor: FC = () => {
                     <Button
                       className="flex-shrink-0"
                       variant={"outline_green"}
-                      onClick={async () => await handleButtonClick(tutor.uid, user.uid)}
+                      onClick={async () => await handleButtonClick(tutor.uid, user.uid, tutor.displayChargesPerHour)}
                     >
                       <p className="sm:block hidden">Add Tutor</p>
                       <p className="sm:hidden block ">Add</p>

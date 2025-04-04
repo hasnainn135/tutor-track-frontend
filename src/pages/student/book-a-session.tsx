@@ -118,6 +118,13 @@ const BookSession: FC = () => {
       } else setFormError(null);
 
       if (user && userData && formData.sessionLimit) {
+
+        let charges = 100;
+
+        if (selectedTutor) {
+          charges = selectedTutor.displayChargesPerHour ? selectedTutor.displayChargesPerHour : 100;
+        }
+
         setIsSubmitting(true);
         await createSession(
           formData.sessionWith, 
@@ -126,7 +133,7 @@ const BookSession: FC = () => {
           formData.timeSlot.split("+")[0].trim(), // timeSlot
           date, // sessionDate
           formData.notes, // notes,
-          500 // sessionCharges
+          charges // sessionCharges
         );
       }
       

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import ContainerLayout from "@/pages/layouts/ContainerLayout";
 import useAuthState from "@/states/AuthState";
-import { StudentSchema } from "@/types/firebase";
+import { StudentSchema, TutorSchema } from "@/types/firebase";
 import { addUser, getStudents } from "@/utils/firestore";
 
 import { FC, useEffect, useState } from "react";
@@ -11,7 +11,8 @@ import LoadingSpinner from "@/components/ui/loading-spinner";
 
 const AddTutor: FC = () => {
   const [allstd, setAllStd] = useState<StudentSchema[]>([]);
-  const { user } = useAuthState();
+  const { user, userData } = useAuthState();
+  const tutorData = userData as TutorSchema;
   const [searchVal, setSearchVal] = useState<string>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
@@ -26,9 +27,10 @@ const AddTutor: FC = () => {
     fetchStudents();
   }, []);
 
-  const handleButtonClick = async (tutorID:string, studentID:string) => {
+  const handleButtonClick = async (tutorID:string, studentID:string, displayChargesPerHour:number | null) => {
     setIsLoading(true); 
-    await addUser(tutorID, studentID, 500); //TUTOR'S PER HOUR CHARGES
+    const charges = displayChargesPerHour? displayChargesPerHour : 100;
+    await addUser(tutorID, studentID, charges); //TUTOR'S PER HOUR CHARGES
     router.push("/tutor/my-students");
     setIsLoading(false);
   }
@@ -89,7 +91,7 @@ const AddTutor: FC = () => {
                     <Button
                       variant={"outline_green"}
                       onClick={async () => {
-                        await handleButtonClick(user.uid, std.uid);
+                        await handleButtonClick(user.uid, std.uid, tutorData.displayChargesPerHour);
                       }}
                     >
                       Add Student
