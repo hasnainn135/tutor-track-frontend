@@ -1,4 +1,4 @@
-import React, {FormEvent, useState} from "react";
+import React, {FormEvent, useEffect, useState} from "react";
 import Image from "next/image";
 import pfp2 from "@/assets/pfp2.png";
 import {updatePassword, updateProfile} from "firebase/auth";
@@ -60,11 +60,11 @@ const scheduleMap: WeeklySchedule[] = [
 
 const TutorSettings = () => {
     const {user, userData} = useAuthState();
-    console.log(userData)
-    const router = useRouter();
     const tutor = userData as TutorSchema;
+    console.log(userData);
+    const router = useRouter();
     const [error, setError] = useState("");
-    console.log("name = ", userData?.fullName)
+    console.log("name = ", userData?.fullName);
 
     if (!user) return <></>;
 
@@ -134,6 +134,10 @@ const TutorSettings = () => {
         const newPassword = formData.get("newPassword") as string;
         const confirmPassword = formData.get("confirmPassword") as string;
         const about = formData.get("about") as string;
+        const yearsOfExperience = formData.get("yearsOfExperience") as string;
+        const displayChargesPerHour = formData.get("displayChargesPerHour") as string;
+        const yoeNumber = Number(yearsOfExperience);
+        const cphNumber = Number(displayChargesPerHour);
 
         console.log("clicked 2");
         // Extract Time Slot Data
@@ -177,15 +181,23 @@ const TutorSettings = () => {
             }
         }
 
+        console.log("cph = ", cphNumber);
+        console.log("yoe = ", yoeNumber);
+
         if (
             educationLevel !== userData?.educationLevel ||
             institute !== userData?.instituteName ||
-            about !== userData?.about
+            about !== userData?.about ||
+            yoeNumber !== tutor.yearsOfExperience ||
+            cphNumber !== tutor.displayChargesPerHour
         ) {
+            console.log("I RAN");
             await updateDoc(doc(db, "users", user.uid), {
                 educationLevel,
                 institute,
                 about,
+                yearsOfExperience: yoeNumber,
+                displayChargesPerHour: cphNumber,
             });
         }
 
@@ -195,7 +207,7 @@ const TutorSettings = () => {
             });
         }
 
-        router.push("/student/dashboard");
+        router.reload();
     };
 
     const handleDeleteUser = async () => {
@@ -259,6 +271,28 @@ const TutorSettings = () => {
                             id="institute"
                             name="institute"
                             defaultValue={userData?.instituteName ?? undefined}
+                            className="border border-[#bababa] rounded-md h-9 w-full"
+                        />
+                    </div>
+                </div>
+                <div className="flex sm:flex-row flex-col  mt-4 gap-2 ">
+                    <div className="w-full">
+                        <label htmlFor="yearsOfExperience">Number of Years of Experience</label>
+                        <input
+                            type="number"
+                            id="yearsOfExperience"
+                            name="yearsOfExperience"
+                            defaultValue={tutor?.yearsOfExperience ?? undefined}
+                            className="border border-[#bababa] rounded-md h-9 w-full"
+                        />
+                    </div>
+                    <div className="w-full">
+                        <label htmlFor="displayChargesPerHour">Your Hourly Charges</label>
+                        <input
+                            type="number"
+                            id="displayChargesPerHour"
+                            name="displayChargesPerHour"
+                            defaultValue={tutor?.displayChargesPerHour ?? undefined}
                             className="border border-[#bababa] rounded-md h-9 w-full"
                         />
                     </div>
