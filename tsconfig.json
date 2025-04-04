@@ -22,6 +22,6 @@
     "**/*.ts",
     "**/*.tsx",
     "src/components/Timer.tsx"
-  ],
+, "src/pages/chat.jsx"  ],
   "exclude": ["node_modules"]
 }

@@ -40,7 +40,6 @@ const StudentSidebar: FC<StudentSidebarProps> = ({ children }) => {
     "/tutor/analytics",
     "/tutor/add-student",
     "/tutor/my-profile",
-    "/chat",
   ];
 
   const dynamicPagesWithSidebar = [

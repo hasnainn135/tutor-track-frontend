@@ -6,12 +6,16 @@ import { addUser, getStudents } from "@/utils/firestore";
 
 import { FC, useEffect, useState } from "react";
 import { IoSearchOutline } from "react-icons/io5";
+import { useRouter } from "next/router";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 
 const AddTutor: FC = () => {
   const [allstd, setAllStd] = useState<StudentSchema[]>([]);
-  const { user, userData } = useAuthState();
+  const { user } = useAuthState();
   const [searchVal, setSearchVal] = useState<string>();
-
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const router = useRouter();
+  
   useEffect(() => {
     const fetchStudents = async () => {
       const students = await getStudents();
@@ -21,6 +25,21 @@ const AddTutor: FC = () => {
 
     fetchStudents();
   }, []);
+
+  const handleButtonClick = async (tutorID:string, studentID:string) => {
+    setIsLoading(true); 
+    await addUser(tutorID, studentID, 500); //TUTOR'S PER HOUR CHARGES
+    router.push("/tutor/my-students");
+    setIsLoading(false);
+  }
+
+  if (isLoading) {
+    return (
+      <div className="h-[80vh] justify-center items-center flex flex-col gap-3">
+      <LoadingSpinner/>
+      </div>
+    )
+  }
 
   if (user)
     return (
@@ -70,7 +89,7 @@ const AddTutor: FC = () => {
                     <Button
                       variant={"outline_green"}
                       onClick={async () => {
-                        await addUser(user.uid, std.uid, 500);
+                        await handleButtonClick(user.uid, std.uid);
                       }}
                     >
                       Add Student

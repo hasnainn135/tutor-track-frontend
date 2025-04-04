@@ -44,6 +44,8 @@ export default function App({ Component, pageProps }: AppProps) {
     if (!user || !userData) {
       if (router.pathname !== "/" && !router.pathname.includes("/auth"))
         router.push("/auth/login");
+
+      if (router.pathname.includes("/tutor") || router.pathname.includes("/student")) router.push("/auth/login");
     }
   }, [user, userData, router]);
 

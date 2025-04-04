@@ -14,9 +14,11 @@ import LoadingSpinner from "@/components/ui/loading-spinner";
 import useAuthState from "@/states/AuthState";
 import { StudentSchema, TutorSchema } from "@/types/firebase";
 import { createSession, getMyTutors } from "@/utils/firestore";
+import { useRouter } from "next/router";
 
 const BookSession: FC = () => {
   const { user, userData } = useAuthState();
+  const router = useRouter();
 
   const [date, setDate] = useState<Date | undefined>();
   const [selectedDay, setSelectedDay] = useState<
@@ -127,6 +129,8 @@ const BookSession: FC = () => {
           500 // sessionCharges
         );
       }
+      
+      router.push("/student/dashboard");
     } catch (error) {
       console.error("Error creating session:", error);
     } finally {

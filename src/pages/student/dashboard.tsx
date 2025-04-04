@@ -151,7 +151,7 @@ const Dashboard: FC = () => {
                   </div>
                 ))
               ) : (
-                <p>No Upcoming Sessiosn</p>
+                <p>No Upcoming Session</p>
               )}
             </div>
           </div>

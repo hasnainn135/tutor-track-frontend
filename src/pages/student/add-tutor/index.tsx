@@ -3,15 +3,20 @@ import ContainerLayout from "@/pages/layouts/ContainerLayout";
 import useAuthState from "@/states/AuthState";
 import { TutorSchema } from "@/types/firebase";
 import { addUser, getTutors } from "@/utils/firestore";
+
 import Image from "next/image";
 import { FC, useEffect, useState } from "react";
 import { IoSearchOutline } from "react-icons/io5";
 import pfp2 from "@/assets/pfp2.png";
+import { useRouter } from "next/router";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 
 const AddTutor: FC = () => {
   const [alltutors, setAlltutors] = useState<TutorSchema[]>([]);
-  const { user, userData } = useAuthState();
+  const { user } = useAuthState();
   const [searchVal, setSearchVal] = useState<string>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchTutors = async () => {
@@ -21,6 +26,22 @@ const AddTutor: FC = () => {
     };
     fetchTutors();
   }, []);
+
+  const handleButtonClick = async (tutorID:string, studentID:string) => {
+    setIsLoading(true); 
+    await addUser(tutorID, studentID, 500); //TUTOR'S PER HOUR CHARGES
+    router.push("/student/my-tutors");
+    setIsLoading(false);
+  }
+
+  if (isLoading) {
+    return (
+      <div className="h-[80vh] justify-center items-center flex flex-col gap-3">
+      <LoadingSpinner/>
+      </div>
+    )
+  }
+
 
   if (user)
     return (
@@ -72,7 +93,7 @@ const AddTutor: FC = () => {
                     <Button
                       className="flex-shrink-0"
                       variant={"outline_green"}
-                      onClick={() => addUser(tutor.uid, user.uid, 500)}
+                      onClick={async () => await handleButtonClick(tutor.uid, user.uid)}
                     >
                       <p className="sm:block hidden">Add Tutor</p>
                       <p className="sm:hidden block ">Add</p>
