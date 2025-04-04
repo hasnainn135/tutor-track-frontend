@@ -120,7 +120,7 @@ const BookSession: FC = () => {
       if (user && userData && formData.sessionLimit) {
         setIsSubmitting(true);
         await createSession(
-          formData.sessionWith, // tutorId
+          formData.sessionWith, 
           user.uid, // studentId
           formData.sessionLimit, // sessionDuration
           formData.timeSlot.split("+")[0].trim(), // timeSlot
