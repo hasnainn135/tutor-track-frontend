@@ -34,6 +34,7 @@ const StudentSidebar: FC<StudentSidebarProps> = ({ children }) => {
     "/tutor/my-students",
     "/tutor/analytics",
     "/tutor/add-student",
+    "/tutor/my-profile",
     //chat
     "/chat",
   ];

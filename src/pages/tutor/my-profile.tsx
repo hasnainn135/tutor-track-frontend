@@ -1,4 +1,3 @@
-import { useUsers } from "@/hooks/useUsers";
 import React from "react";
 import ContainerLayout from "../layouts/ContainerLayout";
 import {
@@ -8,11 +7,13 @@ import {
 } from "react-icons/md";
 import { IoLocationOutline } from "react-icons/io5";
 import { Button } from "@/components/ui/button";
-import { log } from "console";
 import Link from "next/link";
+import useAuthState from "@/states/AuthState";
+import { TutorSchema } from "@/types/firebase";
 
 const MyProfile = () => {
-  const { loggedInTutor } = useUsers();
+  const { user, userData } = useAuthState();
+  const tutorData = userData as TutorSchema;
 
   const renderStars = (rating: number, size: number) => {
     // Calculate the number of full, half, and empty stars based on the rating
@@ -36,7 +37,7 @@ const MyProfile = () => {
     return stars;
   };
 
-  if (loggedInTutor)
+  if (tutorData)
     return (
       <ContainerLayout>
         <div className="flex gap-12">
@@ -44,40 +45,40 @@ const MyProfile = () => {
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden">
                 <img
-                  src={loggedInTutor?.pfp}
+                  src={tutorData?.profilePicture ?? undefined}
                   alt=""
                   className="object-cover h-full"
                 />
               </div>
               <div className="">
-                <p className="text-lg font-medium">{loggedInTutor?.name}</p>
+                <p className="text-lg font-medium">{tutorData?.fullName}</p>
                 <p className="">
                   <span className="font-semibold">
-                    {loggedInTutor?.level_of_education}
+                    {tutorData?.educationLevel}
                   </span>{" "}
                   from{" "}
                   <span className="font-semibold text-primary_green">
-                    {loggedInTutor.institue}
+                    {tutorData.instituteName}
                   </span>
                 </p>
                 <p className="">
                   Experience{" "}
                   <span className="font-semibold text-primary_green">
-                    {loggedInTutor?.teaching_experience}
+                    {tutorData?.yearsOfExperience}
                   </span>
                 </p>
               </div>
             </div>
             <div className="">
               <p className="font-semibold text-lg">About Me</p>
-              <p className="py-1">{loggedInTutor.about}</p>
+              <p className="py-1">{tutorData.about}</p>
             </div>
             <div className="max-w-[650px] border rounded-lg overflow-hidden">
               <div className="grid grid-cols-[160px_1fr] text-lg text-primary_green font-semibold text-center">
                 <div className="p-3">Levels</div>
                 <div className="border-l p-3">Subjects</div>
               </div>
-              {loggedInTutor.offeredSubjects.map((level) => (
+              {tutorData.teachingLevels.map((level) => (
                 <div
                   key={level.level}
                   className="grid grid-cols-[160px_1fr] border-t "
@@ -102,8 +103,8 @@ const MyProfile = () => {
             <div className="">
               <p className="font-semibold text-lg">Reviews</p>
               <div className="flex flex-col gap-5 py-3">
-                {loggedInTutor.reviews ? (
-                  loggedInTutor.reviews.map((review) => (
+                {tutorData.reviews ? (
+                  tutorData.reviews.map((review) => (
                     <div key={review.id} className="flex gap-3">
                       <div className="flex-shrink-0 w-10 h-10 mt-1 rounded-full bg-light_gray overflow-hidden">
                         <img src=" " alt="" />
@@ -116,7 +117,9 @@ const MyProfile = () => {
                                 {review.reviewerName}
                               </span>
                               <span className="text-light_gray font-medium text-sm">
-                                {review.date}
+                                {new Date(
+                                  review.timestamp
+                                ).toLocaleDateString()}
                               </span>
                             </div>
                             <div className="flex items-center gap-1 text-gold font-bold">
@@ -136,27 +139,32 @@ const MyProfile = () => {
           </div>
           <div className="flex flex-col items-end gap-2 flex-shrink-0">
             <div className="text-5xl font-semibold ">
-              <span>{loggedInTutor.hourly_rate}</span>
+              <span>{tutorData.displayChargesPerHour}</span>
               <span className="font-bold text-light_gray"> /hour</span>
             </div>
-            <div className="text-xl font-medium text-gold flex items-center gap-2">
-              {loggedInTutor?.rating}
-              <div className="flex items-center gap-1">
-                {renderStars(loggedInTutor?.rating, 6)}
+
+            {tutorData?.overallRating && (
+              <div className="text-xl font-medium text-gold flex items-center gap-2">
+                {tutorData?.overallRating}
+                rating
+                <div className="flex items-center gap-1">
+                  {renderStars(tutorData?.overallRating, 6)}
+                </div>
               </div>
-            </div>
-            <div className="font-medium text-xl">
-              <span className="text-primary_green font-bold">
-                {loggedInTutor.total_students_taught < 10
-                  ? loggedInTutor.total_students_taught
-                  : Math.floor(loggedInTutor.total_students_taught / 10) * 10 +
-                    "+"}
-              </span>{" "}
-              Students Taught
-            </div>
+            )}
+            {tutorData.totalStudentsTaught && (
+              <div className="font-medium text-xl">
+                <span className="text-primary_green font-bold">
+                  {tutorData.totalStudentsTaught < 10
+                    ? tutorData.totalStudentsTaught
+                    : Math.floor(tutorData.totalStudentsTaught / 10) * 10 + "+"}
+                </span>{" "}
+                Students Taught
+              </div>
+            )}
             <div className="flex items-center gap-1">
-              <IoLocationOutline className="size-5" /> {loggedInTutor.city},{" "}
-              {loggedInTutor.country}
+              <IoLocationOutline className="size-5" /> {tutorData.city},{" "}
+              {tutorData.country}
             </div>
             <div className="flex flex-col gap-2 w-60 py-2">
               <Link href={"/tutor/settings"} className="">
