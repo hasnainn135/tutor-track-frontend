@@ -1,14 +1,15 @@
-import React, { FormEvent, useState } from "react";
+import React, {FormEvent, useState} from "react";
 import Image from "next/image";
-import mh from "@/assets/mh.jpg";
-import { updatePassword, updateProfile } from "firebase/auth";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/firebase/firebase";
+import pfp2 from "@/assets/pfp2.png";
+import {updatePassword, updateProfile} from "firebase/auth";
+import {doc, updateDoc} from "firebase/firestore";
+import {db} from "@/firebase/firebase";
 import useAuthState from "@/states/AuthState";
-import { Button } from "@/components/ui/button";
-import { FiMinusSquare } from "react-icons/fi";
+import {Button} from "@/components/ui/button";
+import {FiMinusSquare} from "react-icons/fi";
 import Link from "next/link";
-import { TutorSchema, WeeklySchedule } from "@/types/firebase";
+import {TutorSchema, WeeklySchedule} from "@/types/firebase";
+import mh from "@/assets/mh.jpg";
 
 const data = [
     {
@@ -28,45 +29,47 @@ const data = [
 const scheduleMap: WeeklySchedule[] = [
     {
         day: "Monday",
-        timeRange: [{ id: "", from: "", to: "" }],
+        timeRange: [{id: "", from: "", to: ""}],
     },
     {
         day: "Tuesday",
-        timeRange: [{ id: "", from: "", to: "" }],
+        timeRange: [{id: "", from: "", to: ""}],
     },
     {
         day: "Wednesday",
-        timeRange: [{ id: "", from: "", to: "" }],
+        timeRange: [{id: "", from: "", to: ""}],
     },
     {
         day: "Thursday",
-        timeRange: [{ id: "", from: "", to: "" }],
+        timeRange: [{id: "", from: "", to: ""}],
     },
     {
         day: "Friday",
-        timeRange: [{ id: "", from: "", to: "" }],
+        timeRange: [{id: "", from: "", to: ""}],
     },
     {
         day: "Saturday",
-        timeRange: [{ id: "", from: "", to: "" }],
+        timeRange: [{id: "", from: "", to: ""}],
     },
     {
         day: "Sunday",
-        timeRange: [{ id: "", from: "", to: "" }],
+        timeRange: [{id: "", from: "", to: ""}],
     },
 ];
 
 const TutorSettings = () => {
-    const { user, userData } = useAuthState();
+    const {user, userData} = useAuthState();
+    console.log(userData)
     const tutor = userData as TutorSchema;
     const [error, setError] = useState("");
+    console.log("name = ", userData?.fullName)
 
     if (!user) return <></>;
 
     const [slots, setSlots] = useState<WeeklySchedule[] | null>(
         tutor?.weeklySchedule && tutor.weeklySchedule.length > 0
-        ? tutor.weeklySchedule
-        : scheduleMap);
+            ? tutor.weeklySchedule
+            : scheduleMap);
 
     const handleSlotChange = (
         e: React.ChangeEvent<HTMLInputElement>,
@@ -111,7 +114,7 @@ const TutorSettings = () => {
                     const newId = `slot-${slotIndex}-t${slot.timeRange.length}`;
                     return {
                         ...slot,
-                        timeRange: [...slot.timeRange, { id: newId, from: "", to: "" }],
+                        timeRange: [...slot.timeRange, {id: newId, from: "", to: ""}],
                     };
                 }
                 return slot;
@@ -160,7 +163,7 @@ const TutorSettings = () => {
         console.log("Updated Time Slots:", updatedSlots);
 
         if (displayName !== user.displayName) {
-            await updateProfile(user, { displayName });
+            await updateProfile(user, {displayName});
         }
 
         if (newPassword && confirmPassword) {
@@ -191,19 +194,25 @@ const TutorSettings = () => {
         }
     };
 
+    console.log(userData?.fullName)
+
     return (
         <div className="flex justify-center px-4">
-            <form onSubmit={handleSubmit} className="flex flex-col w-[40rem] h-screen mt-2">
-                <p className="font-semibold">Settings</p>
+            <form onSubmit={handleSubmit} className="flex flex-col w-[40rem] h-screen mt-2 gap-3">
+                <p className="font-semibold text-3xl mb-2">Settings</p>
                 <button
                     type="submit"
-                    className="border border-red rounded-md text-red mt-2 py-2"
+                    className="border border-red rounded-md text-red mt-2 py-2 hover:bg-red-400 "
                 >
                     Delete Account
                 </button>
-                <div className="flex sm:flex-row flex-col gap-4 mt-4">
-                    <div className="bg-light_gray w-36 h-36 rounded-full overflow-hidden">
-                        <Image src={mh} alt="photo" className="object-cover w-full h-36" />
+                <div className="flex sm:flex-row flex-col  gap-4">
+                    <div className="flex items-center  w-36 h-auto rounded-full overflow-hidden">
+                        <Image
+                            src={userData?.profilePicture ? userData?.profilePicture : pfp2}
+                            alt="photo"
+                            className="object-cover w-36 h-auto"
+                        />
                     </div>
                     <div className="w-full space-y-2">
                         <label htmlFor="displayName">Display Name</label>
@@ -211,53 +220,58 @@ const TutorSettings = () => {
                             type="text"
                             id="displayName"
                             name="displayName"
+                            defaultValue={user.displayName ? user.displayName : undefined}
                             className="border border-[#bababa] rounded-md h-9 w-full"
                         />
                         <div>
                             <p>Email</p>
-                            <p>mhusnain123@gmail.com</p>
+                            <p>{user.email}</p>
                         </div>
                     </div>
                 </div>
-                <div className="flex sm:flex-row flex-col mt-4 gap-2">
+                <div className="flex sm:flex-row flex-col  mt-4 gap-2 ">
                     <div className="w-full">
                         <label htmlFor="educationLevel">Education level</label>
                         <input
                             type="text"
                             id="educationLevel"
                             name="educationLevel"
+                            defaultValue={userData?.educationLevel ?? undefined}
                             className="border border-[#bababa] rounded-md h-9 w-full"
                         />
                     </div>
                     <div className="w-full">
-                        <label htmlFor="institute">Institute</label>
+                        <label htmlFor="Institute">Institute</label>
                         <input
                             type="text"
                             id="institute"
                             name="institute"
+                            defaultValue={userData?.instituteName ?? undefined}
                             className="border border-[#bababa] rounded-md h-9 w-full"
                         />
                     </div>
                 </div>
-                <p className="mt-4">Change Password</p>
-                <div className="flex sm:flex-row flex-col mt-4 gap-2">
-                    <div className="w-full">
-                        <label htmlFor="newPassword">New Password</label>
-                        <input
-                            type="password"
-                            id="newPassword"
-                            name="newPassword"
-                            className="border border-[#bababa] rounded-md h-9 w-full"
-                        />
-                    </div>
-                    <div className="w-full">
-                        <label htmlFor="confirmPassword">Confirm Password</label>
-                        <input
-                            type="password"
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            className="border border-[#bababa] rounded-md h-9 w-full"
-                        />
+                <div className="">
+                    <p className="py-3 font-semibold">Change Password</p>
+                    <div className="flex sm:flex-row flex-col  gap-2    ">
+                        <div className="w-full">
+                            <label htmlFor="newPassword">New Password</label>
+                            <input
+                                type="password"
+                                id="newPassword"
+                                name="newPassword"
+                                className="border border-[#bababa] rounded-md h-9 w-full"
+                            />
+                        </div>
+                        <div className="w-full">
+                            <label htmlFor="confirmPassword">Confirm Password</label>
+                            <input
+                                type="password"
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                className="border border-[#bababa] rounded-md h-9 w-full"
+                            />
+                        </div>
                     </div>
                 </div>
                 <div className="flex flex-col mt-2">
@@ -266,10 +280,12 @@ const TutorSettings = () => {
                         name="about"
                         id="about"
                         className="border border-[#bababa] rounded-md w-full mt-2 h-40"
+                        defaultValue={userData?.about ?? undefined}
                     ></textarea>
                     {/* Teaching Levels */}
                     <div className="max-w-[650px] border border-light_gray rounded-lg overflow-hidden my-3">
-                        <div className="grid grid-cols-[160px_1fr] text-lg text-primary_green font-semibold text-center">
+                        <div
+                            className="grid grid-cols-[160px_1fr] text-lg text-primary_green font-semibold text-center">
                             <div className="p-3">Levels</div>
                             <div className="border-l border-light_gray p-3">Subjects</div>
                         </div>
@@ -333,7 +349,7 @@ const TutorSettings = () => {
                                                     className="flex-shrink-0"
                                                     onClick={() => removeTimeRange(time, s)}
                                                 >
-                                                    <FiMinusSquare className="text-red size-5" />
+                                                    <FiMinusSquare className="text-red size-5"/>
                                                 </button>
                                             </div>
                                         );
