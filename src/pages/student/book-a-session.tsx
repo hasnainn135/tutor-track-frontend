@@ -184,7 +184,7 @@ const BookSession: FC = () => {
                             className="object-cover h-9"
                           />
                         </div>
-                        <p>{tutor.fullName}</p>
+                        <p>{tutor.displayName}</p>
                       </div>
                     </SelectItem>
                   );

@@ -43,7 +43,7 @@ export const createTutor = async (
     const data: TutorSchema = {
       uid: userCreds.user.uid,
       role: "tutor",
-      fullName: name,
+      displayName: name,
       profilePicture: null,
       email: email,
       educationLevel: null,
@@ -79,7 +79,7 @@ export const createStudent = async (
     const data: StudentSchema = {
       uid: userCreds.user.uid,
       role: "student",
-      fullName: name,
+      displayName: name,
       profilePicture: null,
       email: email,
       educationLevel: null,

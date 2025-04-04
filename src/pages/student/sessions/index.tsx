@@ -256,7 +256,7 @@ const StudentSessions = () => {
                       if (tutor)
                         return (
                           <SelectItem key={tutor.uid} value={tutor.uid}>
-                            {tutor.fullName}
+                            {tutor.displayName}
                           </SelectItem>
                         );
                     })}

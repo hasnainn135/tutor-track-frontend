@@ -28,10 +28,6 @@ const StudentSettings = () => {
         const confirmPassword = formData.get("confirmPassword") as string;
         const about = formData.get("about") as string;
 
-        if (displayName !== user.displayName) {
-            await updateProfile(user, {displayName: displayName});
-        }
-
         if (newPassword && confirmPassword) {
             if (newPassword !== confirmPassword) {
                 setError("new password and confirm password do not match");
@@ -40,12 +36,18 @@ const StudentSettings = () => {
             }
         }
 
+        if (displayName !== user.displayName) {
+            await updateProfile(user, {displayName: displayName});
+        }
+
         if (
             educationLevel !== userData?.educationLevel ||
             institute !== userData?.instituteName ||
-            about !== userData?.about
+            about !== userData?.about ||
+            displayName !== user.displayName
         ) {
             await updateDoc(doc(db, "users", user.uid), {
+                displayName: displayName,
                 educationLevel: educationLevel,
                 institute: institute,
                 about: about,

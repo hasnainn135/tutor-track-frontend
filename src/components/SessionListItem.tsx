@@ -141,7 +141,7 @@ const SessionListItem = ({ session }: { session: Session }) => {
                 />
               </div>
               <div className="">
-                <p>{tutor?.fullName}</p>
+                <p>{tutor?.displayName}</p>
                 {session.status === "completed" && session.isTutorAbsent && (
                   <p className="text-sm text-primary_green font-semibold">
                     Marked Absent
@@ -305,7 +305,7 @@ const SessionListItem = ({ session }: { session: Session }) => {
                 />
               </div>
               <div className="">
-                <p>{student?.fullName}</p>
+                <p>{student?.displayName}</p>
                 {session.status === "completed" && session.isStudentAbsent && (
                   <p className="text-sm text-primary_green font-semibold">
                     Marked Absent

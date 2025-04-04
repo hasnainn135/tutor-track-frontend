@@ -63,7 +63,7 @@ const AddTutor: FC = () => {
                         />
                       </div>
                       <div className="">
-                        <p>{std.fullName}</p>
+                        <p>{std.displayName}</p>
                         <p className="text-sm font-medium">{std.email}</p>
                       </div>
                     </div>

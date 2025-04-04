@@ -61,7 +61,7 @@ const MyProfile = () => {
                                 />
                             </div>
                             <div className="">
-                                <p className="text-lg font-medium">{tutorData?.fullName}</p>
+                                <p className="text-lg font-medium">{tutorData?.displayName}</p>
                                 <p className="">
                   <span className="font-semibold">
                     {tutorData?.educationLevel}

@@ -75,7 +75,7 @@ const StudentNotes: FC = () => {
                 className="object-cover h-8"
               />
             </div>
-            <p>{tutor?.fullName}</p>
+            <p>{tutor?.displayName}</p>
           </div>
           <div className="">
             {new Date(session.sessionDate).toLocaleDateString("en-US", {

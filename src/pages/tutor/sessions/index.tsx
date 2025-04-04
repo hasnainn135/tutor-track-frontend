@@ -250,7 +250,7 @@ const TutorSessions = () => {
                     if (std)
                       return (
                         <SelectItem key={std.uid} value={std.uid}>
-                          {std.fullName}
+                          {std.displayName}
                         </SelectItem>
                       );
                   })}
