@@ -170,7 +170,7 @@ const TutorSettings = () => {
   };
 
   return (
-    <div className="flex justify-center">
+    <div className="flex justify-center px-4">
       <form
         onSubmit={handleSubmit}
         className="flex flex-col w-[40rem] h-screen mt-2"
@@ -182,9 +182,9 @@ const TutorSettings = () => {
         >
           Delete Account
         </button>
-        <div className="flex flex-row space-x-4 mt-4">
-          <div className="flex items-center">
-            <Image src={mh} alt="photo" className="w-full h-28 rounded-full " />
+        <div className="flex sm:flex-row flex-col gap-4 mt-4">
+          <div className="bg-light_gray w-36 h-36 rounded-full overflow-hidden">
+            <Image src={mh} alt="photo" className=" object-cover w-full h-36" />
           </div>
           <div className="w-full space-y-2 ">
             <label htmlFor="displayName">Display Name</label>
@@ -200,7 +200,7 @@ const TutorSettings = () => {
             </div>
           </div>
         </div>
-        <div className="flex flex-row mt-4 space-x-2 ">
+        <div className="flex sm:flex-row flex-col mt-4 gap-2 ">
           <div className="w-full">
             <label htmlFor="educationLevel">Education level</label>
             <input
@@ -221,7 +221,7 @@ const TutorSettings = () => {
           </div>
         </div>
         <p className="mt-4">Change Password</p>
-        <div className="flex flex-row mt-4 space-x-2 ">
+        <div className="flex sm:flex-row flex-col mt-4 gap-2 ">
           <div className="w-full">
             <label htmlFor="newPassword">New Password</label>
             <input
@@ -248,33 +248,34 @@ const TutorSettings = () => {
             id="about"
             className="border border-[#bababa] rounded-md w-full mt-2 h-40"
           ></textarea>
-
-          <div className="grid grid-cols-4 place-items-center mt-4">
-            <div className="col-span-1 text-green-600 text-center border border-[#bababa] w-full font-semibold py-2">
-              Level
+          {/* Teaching Levels */}
+          <div className="max-w-[650px] border border-light_gray  rounded-lg overflow-hidden my-3">
+            <div className="grid grid-cols-[160px_1fr] text-lg text-primary_green font-semibold text-center">
+              <div className="p-3">Levels</div>
+              <div className="border-l border-light_gray  p-3">Subjects</div>
             </div>
-            <div className="col-span-3 text-green-600 text-center border border-[#bababa] w-full font-semibold py-2">
-              Subjects
-            </div>
-            {data.map((elem) => {
-              return (
-                <>
-                  <div className="col-span-1 text-green-600 text-center border border-[#bababa] w-full font-semibold py-2">
-                    {elem.level}
-                  </div>
-                  <div className="col-span-3 text-green-600 text-center border border-[#bababa] w-full font-semibold py-2">
-                    {elem.subject.map((subject) => {
-                      return (
-                        <p className="inline mr-2 bg-[#12774D] text-white p-2 text-sm">
-                          {subject}
-                        </p>
-                      );
-                    })}
-                  </div>
-                </>
-              );
-            })}
+            {data.map((level) => (
+              <div
+                key={level.level}
+                className="grid grid-cols-[160px_1fr] border-t border-light_gray "
+              >
+                <div className="font-semibold   p-3 flex items-center text-justify">
+                  {level.level}
+                </div>
+                <div className="p-3 flex items-center gap-2 flex-wrap border-l border-light_gray ">
+                  {level.subject.map((sub) => (
+                    <div
+                      key={sub}
+                      className="bg-primary_green py-1.5 px-3 text-white rounded-lg"
+                    >
+                      {sub}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
+
           {/* TIME SLOTS */}
           <div className="">
             <p className="py-3 font-semibold">Set Time Slot</p>
