@@ -8,11 +8,12 @@ import { db } from "@/firebase/firebase";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FiMinusSquare } from "react-icons/fi";
+import { log } from "console";
 
 type timeSlotType = {
-  id: number;
   day: string;
   timeRange: {
+    id: string;
     from: string;
     to: string;
   }[];
@@ -23,40 +24,33 @@ const StudentSettings = () => {
   const [error, setError] = useState("");
   const [slots, setSlots] = useState<timeSlotType[]>([
     {
-      id: 1,
       day: "Monday",
       timeRange: [
-        { from: "10:00", to: "11:00" },
-        { from: "12:00", to: "13:00" },
+        { id: "s1t1", from: "10:00", to: "11:00" },
+        { id: "s1t2", from: "12:00", to: "13:00" },
       ],
     },
     {
-      id: 2,
       day: "Tuesday",
-      timeRange: [{ from: "10:00", to: "11:00" }],
+      timeRange: [{ id: "s2t1", from: "10:00", to: "11:00" }],
     },
     {
-      id: 3,
       day: "Wednesday",
       timeRange: [],
     },
     {
-      id: 4,
       day: "Thursday",
       timeRange: [],
     },
     {
-      id: 5,
       day: "Friday",
       timeRange: [],
     },
     {
-      id: 6,
       day: "Saturday",
       timeRange: [],
     },
     {
-      id: 7,
       day: "Sunday",
       timeRange: [],
     },
@@ -73,6 +67,18 @@ const StudentSettings = () => {
     const newPassword = formData.get("newPassword") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
     const about = formData.get("about") as string;
+
+    // Extract Time Slot Data
+    const updatedSlots: timeSlotType[] = slots.map((slot, s) => ({
+      ...slot,
+      timeRange: slot.timeRange.map((_, t) => ({
+        id: `slot-${s}-t${t}`,
+        from: formData.get(`slot-${s}-from-${t}`) as string,
+        to: formData.get(`slot-${s}-to-${t}`) as string,
+      })),
+    }));
+
+    console.log("Updated Time Slots:", updatedSlots);
 
     if (displayName !== user.displayName) {
       await updateProfile(user, { displayName: displayName });
@@ -107,10 +113,10 @@ const StudentSettings = () => {
   ) => {
     const newSlots = [...slots];
 
-    if (e.currentTarget.name === "from")
+    if (e.currentTarget.id === `slot-${slotIndex}-from-${timeRangeIndex}`)
       newSlots[slotIndex].timeRange[timeRangeIndex].from =
         e.currentTarget.value;
-    else if (e.currentTarget.name === "to")
+    else if (e.currentTarget.id === `slot-${slotIndex}-to-${timeRangeIndex}`)
       newSlots[slotIndex].timeRange[timeRangeIndex].to = e.currentTarget.value;
 
     setSlots(newSlots);
@@ -132,10 +138,20 @@ const StudentSettings = () => {
   };
 
   const addTimeRange = (slotIndex: number) => {
-    const newSlots = [...slots];
-    const slot = newSlots[slotIndex];
-    slot.timeRange.push({ from: "", to: "" });
-    setSlots(newSlots);
+    setSlots((prevSlots) => {
+      return prevSlots.map((slot, index) => {
+        if (index === slotIndex) {
+          // Generate unique ID using slot index and current time range length
+          const newId = `slot-${slotIndex}-t${slot.timeRange.length}`;
+
+          return {
+            ...slot,
+            timeRange: [...slot.timeRange, { id: newId, from: "", to: "" }],
+          };
+        }
+        return slot;
+      });
+    });
   };
 
   if (userData)
@@ -236,25 +252,28 @@ const StudentSettings = () => {
               {slots.map((slot, s) => {
                 return (
                   <div
-                    key={slot.id}
+                    key={slot.day}
                     className="border-t border-light_gray py-3 flex flex-col gap-2"
                   >
                     <p>{slot.day}</p>
                     {slot.timeRange.map((time, t) => {
                       return (
-                        <div className=" flex items-center w-full gap-2">
+                        <div
+                          key={time.id}
+                          className=" flex items-center w-full gap-2"
+                        >
                           <input
                             type="time"
-                            name="from"
-                            id="from"
+                            name={`slot-${s}-from-${t}`} // Unique name
+                            id={`slot-${s}-from-${t}`}
                             value={time.from}
                             onChange={(e) => handleSlotChange(e, slot, s, t)}
                             className="w-full border border-light_gray rounded-md p-2"
                           />
                           <input
                             type="time"
-                            name="to"
-                            id="to"
+                            name={`slot-${s}-to-${t}`} // Unique name
+                            id={`slot-${s}-to-${t}`}
                             value={time.to}
                             onChange={(e) => handleSlotChange(e, slot, s, t)}
                             className="w-full border border-light_gray rounded-md p-2"

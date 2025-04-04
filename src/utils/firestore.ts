@@ -7,7 +7,7 @@ import {
   where,
 } from "@firebase/firestore";
 import { auth, db } from "@/firebase/firebase";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import {
   Reviews,
   Session,
@@ -20,7 +20,6 @@ import {
   sendEmailVerification,
   updateProfile,
 } from "firebase/auth";
-import { arrayUnion } from "@firebase/firestore/lite";
 
 export const createTutor = async (
   email: string,
@@ -105,6 +104,7 @@ export const addUser = async (
     });
     await Promise.all([f1, f2]);
   } catch (e) {
+    console.error(e);
     throw e;
   }
 };
@@ -130,15 +130,19 @@ export const getStudents = async (): Promise<StudentSchema[]> => {
 };
 
 export const getMyTutors = async (
-  studentId: string
+  studentData: StudentSchema
 ): Promise<TutorSchema[]> => {
   try {
-    const q = query(
-      collection(db, "users"),
-      where("myStudentsId", "array-contains", studentId)
-    );
-    const qs = await getDocs(q);
-    return qs.docs.map((doc) => doc.data() as TutorSchema);
+    if (studentData.myTutors) {
+      const fetchTutorsPromises = studentData.myTutors.map((tutor) =>
+        getDoc(doc(db, "users", tutor.tutorId))
+      );
+      const docs = await Promise.all(fetchTutorsPromises);
+      const tutors = docs.map((doc) => doc.data() as TutorSchema);
+      return tutors;
+    } else {
+      return [];
+    }
   } catch (e) {
     throw e;
   }
@@ -168,15 +172,19 @@ export const updateTutorDisplayCharges = async (
 };
 
 export const getMyStudents = async (
-  tutorId: string
+  tutorData: TutorSchema
 ): Promise<StudentSchema[]> => {
   try {
-    const q = query(
-      collection(db, "users"),
-      where("myTutorsId", "array-contains", tutorId)
-    );
-    const qs = await getDocs(q);
-    return qs.docs.map((doc) => doc.data() as StudentSchema);
+    if (tutorData.myStudents) {
+      const fetchStudentsPromises = tutorData.myStudents.map((student) =>
+        getDoc(doc(db, "users", student.studentId))
+      );
+      const docs = await Promise.all(fetchStudentsPromises);
+      const students = docs.map((doc) => doc.data() as StudentSchema);
+      return students;
+    } else {
+      return [];
+    }
   } catch (e) {
     throw e;
   }
