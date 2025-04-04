@@ -102,4 +102,5 @@ export interface Session {
     createdAt: Date;
     chargesPerHour: number;
     sessionNotes: SessionNotes[];
+    sessionDate: Date;
 }

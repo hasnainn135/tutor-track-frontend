@@ -241,6 +241,7 @@ export const createSession = async (
       createdAt: new Date(),
       sessionNotes: [],
       chargesPerHour: chargesPerHour,
+      sessionDate: date,
     };
     const docRef = doc(db, "sessions", combinedId);
     await setDoc(docRef, data);
