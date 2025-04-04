@@ -1,22 +1,116 @@
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import mh from "@/assets/mh.jpg";
+import { Button } from "@/components/ui/button";
+import { FiMinusSquare } from "react-icons/fi";
+
+type timeSlotType = {
+  day: string;
+  timeRange: {
+    id: string;
+    from: string;
+    to: string;
+  }[];
+};
+
+const data = [
+  {
+    level: "A levels",
+    subject: ["Mathematics", "Physics", "French", "Chemistry"],
+  },
+  {
+    level: "IGCSE",
+    subject: ["Mathematics", "Physics", "French"],
+  },
+  {
+    level: "GCSE",
+    subject: ["Mathematics", "Physics", "French", "Chemistry", "Spanish"],
+  },
+];
 
 const StudentSettings = () => {
-  const data = [
+  const [slots, setSlots] = useState<timeSlotType[]>([
     {
-      level: "A levels",
-      subject: ["Mathematics", "Physics", "French", "Chemistry"],
+      day: "Monday",
+      timeRange: [
+        { id: "s1t1", from: "10:00", to: "11:00" },
+        { id: "s1t2", from: "12:00", to: "13:00" },
+      ],
     },
     {
-      level: "IGCSE",
-      subject: ["Mathematics", "Physics", "French"],
+      day: "Tuesday",
+      timeRange: [{ id: "s2t1", from: "10:00", to: "11:00" }],
     },
     {
-      level: "GCSE",
-      subject: ["Mathematics", "Physics", "French", "Chemistry", "Spanish"],
+      day: "Wednesday",
+      timeRange: [],
     },
-  ];
+    {
+      day: "Thursday",
+      timeRange: [],
+    },
+    {
+      day: "Friday",
+      timeRange: [],
+    },
+    {
+      day: "Saturday",
+      timeRange: [],
+    },
+    {
+      day: "Sunday",
+      timeRange: [],
+    },
+  ]);
+
+  const handleSlotChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    slot: timeSlotType,
+    slotIndex: number,
+    timeRangeIndex: number
+  ) => {
+    const newSlots = [...slots];
+
+    if (e.currentTarget.id === `slot-${slotIndex}-from-${timeRangeIndex}`)
+      newSlots[slotIndex].timeRange[timeRangeIndex].from =
+        e.currentTarget.value;
+    else if (e.currentTarget.id === `slot-${slotIndex}-to-${timeRangeIndex}`)
+      newSlots[slotIndex].timeRange[timeRangeIndex].to = e.currentTarget.value;
+
+    setSlots(newSlots);
+  };
+
+  const removeTimeRange = (
+    time: { from: string; to: string },
+    slotIndex: number
+  ) => {
+    const newSlots = [...slots];
+    const slot = newSlots[slotIndex];
+    const timeRangeIndex = slot.timeRange.findIndex(
+      (t) => t.from === time.from && t.to === time.to
+    );
+    if (timeRangeIndex !== -1) {
+      slot.timeRange.splice(timeRangeIndex, 1);
+      setSlots(newSlots);
+    }
+  };
+
+  const addTimeRange = (slotIndex: number) => {
+    setSlots((prevSlots) => {
+      return prevSlots.map((slot, index) => {
+        if (index === slotIndex) {
+          // Generate unique ID using slot index and current time range length
+          const newId = `slot-${slotIndex}-t${slot.timeRange.length}`;
+
+          return {
+            ...slot,
+            timeRange: [...slot.timeRange, { id: newId, from: "", to: "" }],
+          };
+        }
+        return slot;
+      });
+    });
+  };
 
   return (
     <div className="flex justify-center">
@@ -121,6 +215,61 @@ const StudentSettings = () => {
               );
             })}
           </div>
+          {/* TIME SLOTS */}
+          <div className="">
+            <p className="py-3 font-semibold">Set Time Slot</p>
+            {slots.map((slot, s) => {
+              return (
+                <div
+                  key={slot.day}
+                  className="border-t border-light_gray py-3 flex flex-col gap-2"
+                >
+                  <p>{slot.day}</p>
+                  {slot.timeRange.map((time, t) => {
+                    return (
+                      <div
+                        key={time.id}
+                        className=" flex items-center w-full gap-2"
+                      >
+                        <input
+                          type="time"
+                          name={`slot-${s}-from-${t}`} // Unique name
+                          id={`slot-${s}-from-${t}`}
+                          value={time.from}
+                          onChange={(e) => handleSlotChange(e, slot, s, t)}
+                          className="w-full border border-light_gray rounded-md p-2"
+                        />
+                        <input
+                          type="time"
+                          name={`slot-${s}-to-${t}`} // Unique name
+                          id={`slot-${s}-to-${t}`}
+                          value={time.to}
+                          onChange={(e) => handleSlotChange(e, slot, s, t)}
+                          className="w-full border border-light_gray rounded-md p-2"
+                        />
+                        <button
+                          type="button"
+                          title="remove slot"
+                          className="flex-shrink-0"
+                          onClick={() => removeTimeRange(time, s)}
+                        >
+                          <FiMinusSquare className="text-red size-5" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                  <Button
+                    type="button"
+                    variant={"ghost_green"}
+                    onClick={() => addTimeRange(s)}
+                  >
+                    Add Slot
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+
           <button
             type="submit"
             className="bg-[#169962] border border-[#bababa] rounded-md mt-4 text-white py-1 h-9"
