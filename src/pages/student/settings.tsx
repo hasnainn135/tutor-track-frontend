@@ -25,18 +25,6 @@ const StudentSettings = () => {
     const confirmPassword = formData.get("confirmPassword") as string;
     const about = formData.get("about") as string;
 
-    // // Extract Time Slot Data
-    // const updatedSlots: timeSlotType[] = slots.map((slot, s) => ({
-    //   ...slot,
-    //   timeRange: slot.timeRange.map((_, t) => ({
-    //     id: `slot-${s}-t${t}`,
-    //     from: formData.get(`slot-${s}-from-${t}`) as string,
-    //     to: formData.get(`slot-${s}-to-${t}`) as string,
-    //   })),
-    // }));
-
-    // console.log("Updated Time Slots:", updatedSlots);
-
     if (displayName !== user.displayName) {
       await updateProfile(user, { displayName: displayName });
     }
