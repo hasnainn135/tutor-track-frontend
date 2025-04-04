@@ -48,6 +48,8 @@ export const createTutor = async (
       yearsOfExperience: null,
       displayChargesPerHour: null,
       weeklySchedule: null,
+      overallRating: null,
+      totalStudentsTaught: null,
     };
     await setDoc(doc(db, "users", userCreds.user.uid), data);
   } catch (e: any) {
