@@ -1,16 +1,16 @@
-import React, {FormEvent, useEffect, useState} from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 import Image from "next/image";
 import pfp2 from "@/assets/pfp2.png";
-import {updatePassword, updateProfile} from "firebase/auth";
-import {doc, updateDoc} from "firebase/firestore";
-import {db} from "@/firebase/firebase";
+import { updatePassword, updateProfile } from "firebase/auth";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "@/firebase/firebase";
 import useAuthState from "@/states/AuthState";
-import {Button} from "@/components/ui/button";
-import {FiMinusSquare} from "react-icons/fi";
+import { Button } from "@/components/ui/button";
+import { FiMinusSquare } from "react-icons/fi";
 import Link from "next/link";
-import {TutorSchema, WeeklySchedule} from "@/types/firebase";
-import {useRouter} from "next/router";
-import {deleteMyUser} from "@/utils/firestore";
+import { TutorSchema, WeeklySchedule } from "@/types/firebase";
+import { useRouter } from "next/router";
+import { deleteMyUser } from "@/utils/firestore";
 
 const data = [
     {
@@ -28,50 +28,28 @@ const data = [
 ];
 
 const scheduleMap: WeeklySchedule[] = [
-    {
-        day: "Monday",
-        timeRange: [{id: "", from: "", to: ""}],
-    },
-    {
-        day: "Tuesday",
-        timeRange: [{id: "", from: "", to: ""}],
-    },
-    {
-        day: "Wednesday",
-        timeRange: [{id: "", from: "", to: ""}],
-    },
-    {
-        day: "Thursday",
-        timeRange: [{id: "", from: "", to: ""}],
-    },
-    {
-        day: "Friday",
-        timeRange: [{id: "", from: "", to: ""}],
-    },
-    {
-        day: "Saturday",
-        timeRange: [{id: "", from: "", to: ""}],
-    },
-    {
-        day: "Sunday",
-        timeRange: [{id: "", from: "", to: ""}],
-    },
+    { day: "Monday", timeRange: [{ id: "", from: "", to: "" }] },
+    { day: "Tuesday", timeRange: [{ id: "", from: "", to: "" }] },
+    { day: "Wednesday", timeRange: [{ id: "", from: "", to: "" }] },
+    { day: "Thursday", timeRange: [{ id: "", from: "", to: "" }] },
+    { day: "Friday", timeRange: [{ id: "", from: "", to: "" }] },
+    { day: "Saturday", timeRange: [{ id: "", from: "", to: "" }] },
+    { day: "Sunday", timeRange: [{ id: "", from: "", to: "" }] },
 ];
 
 const TutorSettings = () => {
-    const {user, userData} = useAuthState();
+    const { user, userData } = useAuthState();
     const tutor = userData as TutorSchema;
-    console.log(userData);
     const router = useRouter();
     const [error, setError] = useState("");
-    console.log("name = ", userData?.fullName);
 
     if (!user) return <></>;
 
     const [slots, setSlots] = useState<WeeklySchedule[] | null>(
         tutor?.weeklySchedule && tutor.weeklySchedule.length > 0
             ? tutor.weeklySchedule
-            : scheduleMap);
+            : scheduleMap
+    );
 
     const handleSlotChange = (
         e: React.ChangeEvent<HTMLInputElement>,
@@ -116,7 +94,7 @@ const TutorSettings = () => {
                     const newId = `slot-${slotIndex}-t${slot.timeRange.length}`;
                     return {
                         ...slot,
-                        timeRange: [...slot.timeRange, {id: newId, from: "", to: ""}],
+                        timeRange: [...slot.timeRange, { id: newId, from: "", to: "" }],
                     };
                 }
                 return slot;
@@ -131,6 +109,8 @@ const TutorSettings = () => {
         const displayName = formData.get("displayName") as string;
         const educationLevel = formData.get("educationLevel") as string;
         const institute = formData.get("institute") as string;
+        const country = formData.get("country") as string;
+        const city = formData.get("city") as string;
         const newPassword = formData.get("newPassword") as string;
         const confirmPassword = formData.get("confirmPassword") as string;
         const about = formData.get("about") as string;
@@ -169,7 +149,7 @@ const TutorSettings = () => {
         console.log("Updated Time Slots:", updatedSlots);
 
         if (displayName !== user.displayName) {
-            await updateProfile(user, {displayName});
+            await updateProfile(user, { displayName });
         }
 
         if (newPassword && confirmPassword) {
@@ -188,14 +168,18 @@ const TutorSettings = () => {
             educationLevel !== userData?.educationLevel ||
             institute !== userData?.instituteName ||
             about !== userData?.about ||
+            country !== userData?.country ||
+            city !== userData?.city ||
             yoeNumber !== tutor.yearsOfExperience ||
             cphNumber !== tutor.displayChargesPerHour
         ) {
             console.log("I RAN");
             await updateDoc(doc(db, "users", user.uid), {
                 educationLevel,
-                institute,
+                instituteName: institute,
                 about,
+                country,
+                city,
                 yearsOfExperience: yoeNumber,
                 displayChargesPerHour: cphNumber,
             });
@@ -217,7 +201,7 @@ const TutorSettings = () => {
         } catch (e: any) {
             setError(e.message);
         }
-    }
+    };
 
     return (
         <div className="flex justify-center px-4">
@@ -226,12 +210,12 @@ const TutorSettings = () => {
                 <button
                     onClick={handleDeleteUser}
                     type="submit"
-                    className="border border-red rounded-md text-red mt-2 py-2 hover:bg-red-400 "
+                    className="border border-red rounded-md text-red mt-2 py-2 hover:bg-red-400"
                 >
                     Delete Account
                 </button>
-                <div className="flex sm:flex-row flex-col  gap-4">
-                    <div className="flex items-center  w-36 h-auto rounded-full overflow-hidden">
+                <div className="flex sm:flex-row flex-col gap-4">
+                    <div className="flex items-center w-36 h-auto rounded-full overflow-hidden">
                         <Image
                             src={userData?.profilePicture ? userData?.profilePicture : pfp2}
                             alt="photo"
@@ -253,7 +237,7 @@ const TutorSettings = () => {
                         </div>
                     </div>
                 </div>
-                <div className="flex sm:flex-row flex-col  mt-4 gap-2 ">
+                <div className="flex sm:flex-row flex-col mt-4 gap-2">
                     <div className="w-full">
                         <label htmlFor="educationLevel">Education level</label>
                         <input
@@ -265,7 +249,7 @@ const TutorSettings = () => {
                         />
                     </div>
                     <div className="w-full">
-                        <label htmlFor="Institute">Institute</label>
+                        <label htmlFor="institute">Institute</label>
                         <input
                             type="text"
                             id="institute"
@@ -275,7 +259,30 @@ const TutorSettings = () => {
                         />
                     </div>
                 </div>
-                <div className="flex sm:flex-row flex-col  mt-4 gap-2 ">
+                {/* Country and City Fields Side by Side */}
+                <div className="flex sm:flex-row flex-col mt-4 gap-2">
+                    <div className="w-full">
+                        <label htmlFor="country">Country</label>
+                        <input
+                            type="text"
+                            id="country"
+                            name="country"
+                            defaultValue={userData?.country ?? undefined}
+                            className="border border-[#bababa] rounded-md h-9 w-full"
+                        />
+                    </div>
+                    <div className="w-full">
+                        <label htmlFor="city">City</label>
+                        <input
+                            type="text"
+                            id="city"
+                            name="city"
+                            defaultValue={userData?.city ?? undefined}
+                            className="border border-[#bababa] rounded-md h-9 w-full"
+                        />
+                    </div>
+                </div>
+                <div className="flex sm:flex-row flex-col mt-4 gap-2">
                     <div className="w-full">
                         <label htmlFor="yearsOfExperience">Number of Years of Experience</label>
                         <input
@@ -299,7 +306,7 @@ const TutorSettings = () => {
                 </div>
                 <div className="">
                     <p className="py-3 font-semibold">Change Password</p>
-                    <div className="flex sm:flex-row flex-col  gap-2    ">
+                    <div className="flex sm:flex-row flex-col gap-2">
                         <div className="w-full">
                             <label htmlFor="newPassword">New Password</label>
                             <input
@@ -325,30 +332,21 @@ const TutorSettings = () => {
                     <textarea
                         name="about"
                         id="about"
-                        className="border border-[#bababa] rounded-md w-full mt-2 h-40"
                         defaultValue={userData?.about ?? undefined}
+                        className="border border-[#bababa] rounded-md w-full mt-2 h-40"
                     ></textarea>
                     {/* Teaching Levels */}
                     <div className="max-w-[650px] border border-light_gray rounded-lg overflow-hidden my-3">
-                        <div
-                            className="grid grid-cols-[160px_1fr] text-lg text-primary_green font-semibold text-center">
+                        <div className="grid grid-cols-[160px_1fr] text-lg text-primary_green font-semibold text-center">
                             <div className="p-3">Levels</div>
                             <div className="border-l border-light_gray p-3">Subjects</div>
                         </div>
                         {data.map((level) => (
-                            <div
-                                key={level.level}
-                                className="grid grid-cols-[160px_1fr] border-t border-light_gray"
-                            >
-                                <div className="font-semibold p-3 flex items-center text-justify">
-                                    {level.level}
-                                </div>
+                            <div key={level.level} className="grid grid-cols-[160px_1fr] border-t border-light_gray">
+                                <div className="font-semibold p-3 flex items-center text-justify">{level.level}</div>
                                 <div className="p-3 flex items-center gap-2 flex-wrap border-l border-light_gray">
                                     {level.subject.map((sub) => (
-                                        <div
-                                            key={sub}
-                                            className="bg-primary_green py-1.5 px-3 text-white rounded-lg"
-                                        >
+                                        <div key={sub} className="bg-primary_green py-1.5 px-3 text-white rounded-lg">
                                             {sub}
                                         </div>
                                     ))}
@@ -356,23 +354,16 @@ const TutorSettings = () => {
                             </div>
                         ))}
                     </div>
-
                     {/* TIME SLOTS */}
                     <div className="">
                         <p className="py-3 font-semibold">Set Time Slot</p>
                         {slots?.map((slot, s) => {
                             return (
-                                <div
-                                    key={slot.day}
-                                    className="border-t border-light_gray py-3 flex flex-col gap-2"
-                                >
+                                <div key={slot.day} className="border-t border-light_gray py-3 flex flex-col gap-2">
                                     <p>{slot.day}</p>
                                     {slot.timeRange.map((time, t) => {
                                         return (
-                                            <div
-                                                key={time.id}
-                                                className="flex items-center w-full gap-2"
-                                            >
+                                            <div key={time.id} className="flex items-center w-full gap-2">
                                                 <input
                                                     type="time"
                                                     name={`slot-${s}-from-${t}`}
@@ -395,7 +386,7 @@ const TutorSettings = () => {
                                                     className="flex-shrink-0"
                                                     onClick={() => removeTimeRange(time, s)}
                                                 >
-                                                    <FiMinusSquare className="text-red size-5"/>
+                                                    <FiMinusSquare className="text-red size-5" />
                                                 </button>
                                             </div>
                                         );
@@ -407,7 +398,6 @@ const TutorSettings = () => {
                             );
                         })}
                     </div>
-
                     <div className="flex flex-col w-full gap-3">
                         <Button type="submit">Save Changes</Button>
                         <Link href={"/student/dashboard"} className="">
