@@ -7,7 +7,7 @@ import {
   where,
 } from "@firebase/firestore";
 import { auth, db } from "@/firebase/firebase";
-import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import {
   Reviews,
   Session,
@@ -20,6 +20,7 @@ import {
   sendEmailVerification,
   updateProfile,
 } from "firebase/auth";
+import { arrayUnion } from "@firebase/firestore/lite";
 
 export const createTutor = async (
   email: string,
@@ -104,7 +105,6 @@ export const addUser = async (
     });
     await Promise.all([f1, f2]);
   } catch (e) {
-    console.error(e);
     throw e;
   }
 };

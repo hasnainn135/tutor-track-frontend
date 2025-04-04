@@ -13,7 +13,7 @@ import DatePicker from "@/components/ui/date-picker";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import useAuthState from "@/states/AuthState";
 import { TutorSchema } from "@/types/firebase";
-import { createSession, getMyTutors } from "@/utils/firestore";
+import { createSession, getMyTutors, getTutors } from "@/utils/firestore";
 import { ca } from "date-fns/locale";
 
 const BookSession: FC = () => {
@@ -68,7 +68,8 @@ const BookSession: FC = () => {
       if (!user) return;
       if (userData?.role === "student") {
         try {
-          const tutors = await getMyTutors(user.uid);
+          // const tutors = await getMyTutors(user.uid);
+          const tutors = await getTutors();
 
           setMyTutors(tutors);
         } catch (error) {
@@ -86,6 +87,7 @@ const BookSession: FC = () => {
       [field]: value,
     }));
   };
+
   //Update date in Form Data
   useEffect(() => {
     handleChange("date", date);
