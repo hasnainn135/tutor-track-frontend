@@ -76,12 +76,29 @@ const SessionListItem = ({ session }: { session: Session }) => {
 
   useEffect(() => {
     const checkSessionOngoing = () => {
-      if (session.status === "incomplete" && session.bookingStartTime) {
-        const bookingTime = parseTime(session.bookingStartTime);
+      if (
+        session.status === "incomplete" &&
+        session.bookingStartTime &&
+        session.sessionDate
+      ) {
+        // Convert Firestore timestamp to JS Date
+        const bookingDate = timestampToDateOnly(session.sessionDate) as Date;
+        console.log("Booking Date:", bookingDate);
+
+        // Parse booking start time ("HH:mm")
+        const [hours, minutes] = session.bookingStartTime
+          .split(":")
+          .map(Number);
+
+        // Set time on bookingDate
+        bookingDate.setHours(hours, minutes, 0, 0);
+
         const currentTime = new Date();
 
-        // Compare if booking time is equal to or greater than current time
-        if (bookingTime >= currentTime) {
+        console.log("Full Booking DateTime:", bookingDate);
+        console.log("Current Time:", currentTime);
+
+        if (currentTime >= bookingDate) {
           setSessionOngoing(true);
         } else {
           setSessionOngoing(false);
@@ -174,7 +191,13 @@ const SessionListItem = ({ session }: { session: Session }) => {
                 })()}
               </p>
               <p className="text-lg font-semibold">
-                {session.bookingStartTime}
+                {new Date(
+                  `1970-01-01T${session.bookingStartTime}:00`
+                ).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })}
               </p>
             </div>
             {/* Session Limit */}
@@ -338,7 +361,13 @@ const SessionListItem = ({ session }: { session: Session }) => {
                 })()}
               </p>
               <p className="text-lg font-semibold">
-                {session.bookingStartTime}
+                {new Date(
+                  `1970-01-01T${session.bookingStartTime}:00`
+                ).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })}
               </p>
             </div>
             {/* Session Limit */}
