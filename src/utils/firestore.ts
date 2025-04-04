@@ -230,10 +230,11 @@ export const createSession = async (
   additionalNotes: string,
   chargesPerHour: number
 ): Promise<void> => {
+  const docRef = collection(db, "sessions");
+  const docId = docRef.id;
   try {
-    const combinedId: string = tutorId + studentId;
     const data: Session = {
-      id: combinedId,
+      id: docId,
       studentId: studentId,
       tutorId: tutorId,
       monthYear: `${date.getMonth() + 1}-${date.getFullYear()}`,
@@ -253,8 +254,7 @@ export const createSession = async (
       chargesPerHour: chargesPerHour,
       sessionDate: date,
     };
-    const docRef = doc(db, "sessions", combinedId);
-    await setDoc(docRef, data);
+    await addDoc(docRef, data);
   } catch (e) {
     throw e;
   }
