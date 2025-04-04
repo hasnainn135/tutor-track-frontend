@@ -2,26 +2,20 @@ import React, { useEffect, useState } from "react";
 import ContainerLayout from "../layouts/ContainerLayout";
 import { getMyTutors, getTutorById } from "@/utils/firestore";
 import useAuthState from "@/states/AuthState";
-import { TutorSchema } from "@/types/firebase";
+import {StudentSchema, TutorSchema} from "@/types/firebase";
 
 const MyTutors = () => {
   // const { loggedInStudent, getTutorById } = useUsers();
   const { user, userData } = useAuthState();
   const [bookedTutors, setBookedTutors] = useState<TutorSchema[] | null>(null);
+  const student = userData as StudentSchema;
 
   useEffect(() => {
     const fetchTutors = async () => {
-      if (!user) return;
-
-      try {
-        const tutors = await getMyTutors(user?.uid);
-
-        setBookedTutors(tutors);
-      } catch (e) {
-        console.error("Error fetching Tutor Data:", e);
-      }
+      if (!user || !student) return;
+      const tutors = await getMyTutors(student);
+      setBookedTutors(tutors);
     };
-
     fetchTutors();
   }, []);
 
