@@ -97,7 +97,6 @@ export interface Session {
   actualStartTime: string | null; // is this correct data type? please test
   actualEndTime: string | null; // is this correct data type? please test
   actualDuration: string | null; // is this correct data type? please test
-  totalPauseTime: string | null; // is this correct data type? please test
   isStudentAbsent: boolean;
   isTutorAbsent: boolean;
   additionalNotes: string;
@@ -107,6 +106,9 @@ export interface Session {
   sessionDate: Date;
   start: boolean;
   end: boolean;
+  paused: boolean;
+  pauseStartTime: Date | null;
+  totalPauseTime: number | null; //total paused seconds
   autoEnd: boolean;
 }
 

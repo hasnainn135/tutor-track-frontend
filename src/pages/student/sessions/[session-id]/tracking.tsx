@@ -28,6 +28,10 @@ import {
   getStudentById,
   getTutorById,
   listenToSessionChanges,
+  parseDuration,
+  pauseSessionInFirestore,
+  resumeSessionInFirestore,
+  setAutoEndSession,
   startSessionInFirestore,
   timestampToDateOnly,
 } from "@/utils/firestore";
@@ -49,6 +53,7 @@ const StudentTracking: FC = () => {
   const [tutor, setTutor] = useState<TutorSchema>();
   const [studnet, setStudnet] = useState<StudentSchema>();
   const [count, setCount] = useState(0);
+  const [autoEnd, setAutoEnd] = useState<boolean>(true);
 
   const [disableStartButton, setDisableStartButton] = useState<boolean>(false);
   const [disableStatus, setDisableStatus] = useState<string | null>(null);
@@ -61,7 +66,7 @@ const StudentTracking: FC = () => {
   const {
     time,
     isRunning,
-    isPaused,
+    paused,
     setTime,
     startTimer,
     stopTimer,
@@ -101,14 +106,21 @@ const StudentTracking: FC = () => {
   const handleStartStopSession = async () => {
     if (sessionId)
       if (!isRunning) {
-        startTimer();
-        setPause(true);
+        if (!autoEnd) await setAutoEndSession(sessionId as string, autoEnd); //by default autoEnd is true in firebase at the time of session creation
         await startSessionInFirestore(sessionId as string);
-        setDisableStartButton(true);
-        setTimeout(() => {
-          setDisableStartButton(false);
-          setDisableStatus(null);
-        }, 30 * 1000);
+        startTimer();
+
+        // AUTO END SESSION
+        if (autoEnd) {
+          setTimeout(async () => {
+            await endSessionInFirestore(sessionId as string);
+            await completeSession(sessionId as string);
+            stopTimer();
+            resetTimer();
+            setCount(0);
+            window.location.reload();
+          }, parseDuration(session?.duration as string) * 1000 * 60);
+        }
       } else {
         try {
           await endSessionInFirestore(sessionId as string);
@@ -118,17 +130,19 @@ const StudentTracking: FC = () => {
         } finally {
           stopTimer();
           resetTimer();
-          setPause(false);
           setCount(0);
+          window.location.reload();
         }
       }
   };
 
-  const handlePauseResume = () => {
-    if (!isPaused) {
+  const handlePauseResume = async () => {
+    if (!paused) {
       pauseTimer();
+      if (session) await pauseSessionInFirestore(session.id);
     } else {
       resumeTimer();
+      if (session) await resumeSessionInFirestore(session.id);
     }
   };
 
@@ -204,7 +218,11 @@ const StudentTracking: FC = () => {
           <div className="flex flex-col items-center gap-3 w-fit mx-auto">
             <div className="flex flex-col items-center gap-1">
               <p className="text-sm">Session Duration</p>
-              <Select defaultValue={"auto"}>
+              <Select
+                disabled={isRunning}
+                value={autoEnd ? "auto" : "manual"}
+                onValueChange={(value) => setAutoEnd(value === "auto")}
+              >
                 <SelectTrigger className="w-[200px] border border-primary_green text-center flex justify-center items-center text-primary_green font-medium text-md gap-2">
                   <SelectValue placeholder="Select Timer" />
                 </SelectTrigger>
@@ -215,14 +233,14 @@ const StudentTracking: FC = () => {
               </Select>
             </div>
             <div className="flex  md:flex-row flex-col-reverse items-center md:gap-3 gap-6">
-              <div className="w-40 flex items-center justify-end">
+              <div className=" w-40 flex items-center justify-end">
                 <Button
                   variant={"outline_green"}
                   className="text-md"
-                  disabled={!isRunning} // not disabled if paused
+                  // disabled={!isRunning} // not disabled if paused
                   onClick={handlePauseResume}
                 >
-                  {!isPaused ? (
+                  {!paused ? (
                     <>
                       <IoMdPause />
                       Pause Session
@@ -250,9 +268,11 @@ const StudentTracking: FC = () => {
                     handleStartStopSession();
                   }}
                   className="md:w-52 md:h-52 w-44 h-44 border-2 border-primary_green bg-light_green rounded-full text-xl font-semibold text-primary_green disabled:opacity-60"
-                  disabled={disableStartButton}
+                  disabled={
+                    disableStartButton || (!isRunning && paused && autoEnd)
+                  }
                 >
-                  {isRunning ? "End Session" : "Start Session"}
+                  {isRunning && !paused ? "End Session" : "Start Session"}
                 </button>
               </div>
               <div className="flex items-center justify-start gap-2 w-40">

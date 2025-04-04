@@ -12,8 +12,17 @@ import useTimerState from "@/states/TimerState";
 export default function App({ Component, pageProps }: AppProps) {
   const { user, userData, authLoading } = useAuthState();
 
-  const { syncTimer, sessionId, isRunning, startTimer, stopTimer, resetTimer } =
-    useTimerState();
+  const {
+    syncTimer,
+    sessionId,
+    isRunning,
+    paused,
+    startTimer,
+    stopTimer,
+    resetTimer,
+    pauseTimer,
+    resumeTimer,
+  } = useTimerState();
 
   const router = useRouter();
 
@@ -41,20 +50,38 @@ export default function App({ Component, pageProps }: AppProps) {
   useEffect(() => {
     if (!sessionId) return;
 
+    console.log("APP USE EFFECT");
+
     const unsubscribe = listenToSessionChanges({
       sessionId,
       isRunning,
       onStart: (actualStartTime) => {
-        if (actualStartTime) {
-          // Sync timer when the user joins late
-          syncTimer(actualStartTime);
-        } else {
-          startTimer();
-        }
+        if (!paused)
+          if (actualStartTime) {
+            console.log("ON START ACTUAL SYNC");
+            // Sync timer when the user joins late
+            syncTimer(actualStartTime);
+          } else {
+            console.log("ON START");
+            startTimer();
+          }
       },
       onEnd: () => {
+        console.log("ON END");
         stopTimer();
         resetTimer();
+      },
+      onPause: () => {
+        if (!paused) {
+          console.log("ON PAUSE");
+          pauseTimer();
+        }
+      },
+      onResume: () => {
+        if (paused) {
+          console.log("ON RESUME");
+          resumeTimer();
+        }
       },
     });
 

@@ -29,6 +29,8 @@ import {
   getTutorById,
   listenToSessionChanges,
   parseDuration,
+  pauseSessionInFirestore,
+  resumeSessionInFirestore,
   setAutoEndSession,
   startSessionInFirestore,
 } from "@/utils/firestore";
@@ -57,7 +59,7 @@ const TutorTracking: FC = () => {
   const {
     time,
     isRunning,
-    isPaused,
+    paused,
     startTimer,
     stopTimer,
     resetTimer,
@@ -101,24 +103,19 @@ const TutorTracking: FC = () => {
   const handleStartStopSession = async () => {
     if (sessionId)
       if (!isRunning) {
-        startTimer();
-        await startSessionInFirestore(sessionId as string);
-
         if (!autoEnd) await setAutoEndSession(sessionId as string, autoEnd); //by default autoEnd is true in firebase at the time of session creation
-        setDisableStartButton(true);
-        setTimeout(() => {
-          setDisableStartButton(false);
-          setDisableStatus(null);
-        }, 30 * 1000);
+        await startSessionInFirestore(sessionId as string);
+        startTimer();
+
         // AUTO END SESSION
         if (autoEnd) {
-          // Seconds to minutes
-          console.log(
-            (parseDuration(session?.duration as string) * 100000) / 60
-          );
           setTimeout(async () => {
             await endSessionInFirestore(sessionId as string);
             await completeSession(sessionId as string);
+            stopTimer();
+            resetTimer();
+            setCount(0);
+            window.location.reload();
           }, parseDuration(session?.duration as string) * 1000 * 60);
         }
       } else {
@@ -131,15 +128,18 @@ const TutorTracking: FC = () => {
           stopTimer();
           resetTimer();
           setCount(0);
+          window.location.reload();
         }
       }
   };
 
-  const handlePauseResume = () => {
-    if (!isPaused) {
+  const handlePauseResume = async () => {
+    if (!paused) {
       pauseTimer();
+      if (session) await pauseSessionInFirestore(session.id);
     } else {
       resumeTimer();
+      if (session) await resumeSessionInFirestore(session.id);
     }
   };
 
@@ -229,15 +229,15 @@ const TutorTracking: FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex md:flex-row flex-col-reverse items-center md:gap-3 gap-6">
-              <div className="w-40 flex items-center justify-end">
+            <div className=" flex md:flex-row flex-col-reverse items-center md:gap-3 gap-6">
+              <div className=" w-40 flex items-center justify-end">
                 <Button
                   variant={"outline_green"}
                   className="text-md"
-                  disabled={!isRunning} // not disabled if paused
+                  // disabled={!isRunning} // not disabled if paused
                   onClick={handlePauseResume}
                 >
-                  {!isPaused ? (
+                  {!paused ? (
                     <>
                       <IoMdPause />
                       Pause Session
@@ -265,9 +265,11 @@ const TutorTracking: FC = () => {
                     handleStartStopSession();
                   }}
                   className="md:w-52 md:h-52 w-44 h-44 border-2 border-primary_green bg-light_green rounded-full text-xl font-semibold text-primary_green disabled:opacity-60"
-                  disabled={disableStartButton || (isRunning && autoEnd)}
+                  disabled={
+                    disableStartButton || (!isRunning && paused && autoEnd)
+                  }
                 >
-                  {isRunning ? "End Session" : "Start Session"}
+                  {isRunning && !paused ? "End Session" : "Start Session"}
                 </button>
               </div>
               <div className="flex items-center justify-start gap-2 w-40">

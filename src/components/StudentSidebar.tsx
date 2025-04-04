@@ -22,7 +22,7 @@ type StudentSidebarProps = {
 const StudentSidebar: FC<StudentSidebarProps> = ({ children }) => {
   const router = useRouter();
   const { user, userData, signOut } = useAuthState();
-  const { isRunning } = useTimerState();
+  const { isRunning, time } = useTimerState();
   const userType = userData?.role;
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);

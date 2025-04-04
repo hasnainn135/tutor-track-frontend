@@ -252,7 +252,6 @@ export const createSession = async (
       actualStartTime: null,
       actualEndTime: null,
       actualDuration: null,
-      totalPauseTime: null,
       isStudentAbsent: false,
       isTutorAbsent: false,
       additionalNotes: additionalNotes,
@@ -262,6 +261,9 @@ export const createSession = async (
       sessionDate: date,
       start: false,
       end: false,
+      pauseStartTime: null,
+      totalPauseTime: null,
+      paused: false,
       autoEnd: true,
     };
     await setDoc(docRef, data);
@@ -323,16 +325,47 @@ export const endSessionInFirestore = async (sessionId: string) => {
   });
 };
 
+export const pauseSessionInFirestore = async (sessionId: string) => {
+  const sessionRef = doc(db, "sessions", sessionId);
+  await updateDoc(sessionRef, {
+    paused: true,
+    pauseStartTime: new Date().toISOString(),
+  });
+};
+
+export const resumeSessionInFirestore = async (sessionId: string) => {
+  const sessionRef = doc(db, "sessions", sessionId);
+  const sessionSnap = await getDoc(sessionRef);
+  const session = sessionSnap.data();
+
+  if (!session) return;
+
+  const pauseStart = new Date(session.pauseStartTime);
+  const now = new Date();
+  const pausedMs = now.getTime() - pauseStart.getTime();
+  const totalPaused = (session.totalPausedMs || 0) + pausedMs;
+
+  await updateDoc(sessionRef, {
+    paused: false,
+    pauseStartTime: null,
+    totalPauseTime: totalPaused,
+  });
+};
+
 export const listenToSessionChanges = ({
   sessionId,
   isRunning,
   onStart,
   onEnd,
+  onPause,
+  onResume,
 }: {
   sessionId: string;
   isRunning: boolean;
   onStart: (actualStartTime: string | null) => void;
   onEnd: () => void;
+  onPause?: () => void;
+  onResume?: () => void;
 }) => {
   const sessionRef = doc(db, "sessions", sessionId);
 
@@ -346,6 +379,14 @@ export const listenToSessionChanges = ({
 
       if (sessionData.end) {
         onEnd();
+      }
+
+      if (sessionData.paused === true && onPause) {
+        onPause();
+      }
+
+      if (sessionData.paused === false && onResume) {
+        onResume();
       }
     }
   });

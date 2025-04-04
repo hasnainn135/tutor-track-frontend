@@ -3,7 +3,7 @@ import { create } from "zustand";
 type TimerState = {
   time: string;
   isRunning: boolean;
-  isPaused: boolean;
+  paused: boolean;
   intervalId: NodeJS.Timeout | null;
   initTime: number;
   elapsedBeforePause: number;
@@ -30,7 +30,7 @@ function convertToMilliseconds(timeString: string) {
 const useTimerState = create<TimerState>((set, get) => ({
   time: "00 : 00 : 00",
   isRunning: false,
-  isPaused: false,
+  paused: false,
   intervalId: null,
   initTime: 0,
   elapsedBeforePause: 0,
@@ -44,12 +44,14 @@ const useTimerState = create<TimerState>((set, get) => ({
     set({ isRunning: true, elapsedBeforePause: seconds }),
 
   startTimer: () => {
+    if (get().intervalId) clearInterval(get().intervalId!);
+
     const now = Date.now();
     const elapsed = get().elapsedBeforePause;
 
     set(() => ({
       isRunning: true,
-      isPaused: false,
+      paused: false,
       initTime: now - elapsed, // resume from paused time
     }));
 
@@ -68,7 +70,7 @@ const useTimerState = create<TimerState>((set, get) => ({
     }
     set({
       isRunning: false,
-      isPaused: false,
+      paused: false,
       intervalId: null,
       elapsedBeforePause: 0,
     });
@@ -82,7 +84,7 @@ const useTimerState = create<TimerState>((set, get) => ({
     set({
       time: "00 : 00 : 00",
       isRunning: false,
-      isPaused: false,
+      paused: false,
       intervalId: null,
       initTime: 0,
       elapsedBeforePause: 0,
@@ -96,8 +98,8 @@ const useTimerState = create<TimerState>((set, get) => ({
     }
     const elapsed = Date.now() - get().initTime;
     set({
-      isPaused: true,
-      isRunning: true, // still considered running session
+      paused: true,
+      isRunning: false,
       intervalId: null,
       elapsedBeforePause: elapsed,
     });
@@ -108,7 +110,7 @@ const useTimerState = create<TimerState>((set, get) => ({
     const elapsed = get().elapsedBeforePause;
 
     set(() => ({
-      isPaused: false,
+      paused: false,
       isRunning: true,
       initTime: now - elapsed, // resume from paused time
     }));
@@ -145,7 +147,7 @@ const useTimerState = create<TimerState>((set, get) => ({
       initTime: now - elapsedTime * 1000, // Sync initTime with elapsed time
       elapsedBeforePause: elapsedTime * 1000, // Track elapsed time
       isRunning: true,
-      isPaused: false,
+      paused: false,
     }));
 
     const id = setInterval(() => {
