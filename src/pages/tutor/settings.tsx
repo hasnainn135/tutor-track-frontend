@@ -182,184 +182,181 @@ const TutorSettings = () => {
 
     };
 
-    return (
-        <div className="flex justify-center">
-            <form
-                onSubmit={handleSubmit}
-                className="flex flex-col w-[40rem] h-screen mt-2"
-            >
-                <p className="font-semibold">Settings</p>
-                <button
-                    type="submit"
-                    className="border border-red rounded-md text-red mt-2 py-2 "
-                >
-                    Delete Account
-                </button>
-                <div className="flex flex-row space-x-4 mt-4">
-                    <div className="flex items-center">
-                        <Image src={mh} alt="photo" className="w-full h-28 rounded-full "/>
-                    </div>
-                    <div className="w-full space-y-2 ">
-                        <label htmlFor="displayName">Display Name</label>
-                        <input
-                            type="text"
-                            id="displayName"
-                            name="displayName"
-                            className="border border-[#bababa] rounded-md h-9 w-full"
-                        />
-                        <div>
-                            <p>Email</p>
-                            <p>mhusnain123@gmail.com</p>
-                        </div>
-                    </div>
-                </div>
-                <div className="flex flex-row mt-4 space-x-2 ">
-                    <div className="w-full">
-                        <label htmlFor="educationLevel">Education level</label>
-                        <input
-                            type="text"
-                            id="educationLevel"
-                            name="educationLevel"
-                            className="border border-[#bababa] rounded-md h-9 w-full"
-                        />
-                    </div>
-                    <div className="w-full">
-                        <label htmlFor="Institute">Institute</label>
-                        <input
-                            type="text"
-                            id="Institute"
-                            name="Institute"
-                            className="border border-[#bababa] rounded-md h-9 w-full"
-                        />
-                    </div>
-                </div>
-                <p className="mt-4">Change Password</p>
-                <div className="flex flex-row mt-4 space-x-2 ">
-                    <div className="w-full">
-                        <label htmlFor="newPassword">New Password</label>
-                        <input
-                            type="password"
-                            id="newPassword"
-                            name="newPassword"
-                            className="border border-[#bababa] rounded-md h-9 w-full"
-                        />
-                    </div>
-                    <div className="w-full">
-                        <label htmlFor="confirmPassword">Confirm Password</label>
-                        <input
-                            type="password"
-                            id="confirmPassword"
-                            name="confirmPassowrd"
-                            className="border border-[#bababa] rounded-md h-9 w-full"
-                        />
-                    </div>
-                </div>
-                <div className="flex flex-col mt-2">
-                    <label htmlFor="about">About</label>
-                    <textarea
-                        name="about"
-                        id="about"
-                        className="border border-[#bababa] rounded-md w-full mt-2 h-40"
-                    ></textarea>
-
-                    <div className="grid grid-cols-4 place-items-center mt-4">
-                        <div
-                            className="col-span-1 text-green-600 text-center border border-[#bababa] w-full font-semibold py-2">
-                            Level
-                        </div>
-                        <div
-                            className="col-span-3 text-green-600 text-center border border-[#bababa] w-full font-semibold py-2">
-                            Subjects
-                        </div>
-                        {data.map((elem) => {
-                            return (
-                                <>
-                                    <div
-                                        className="col-span-1 text-green-600 text-center border border-[#bababa] w-full font-semibold py-2">
-                                        {elem.level}
-                                    </div>
-                                    <div
-                                        className="col-span-3 text-green-600 text-center border border-[#bababa] w-full font-semibold py-2">
-                                        {elem.subject.map((subject) => {
-                                            return (
-                                                <p className="inline mr-2 bg-[#12774D] text-white p-2 text-sm">
-                                                    {subject}
-                                                </p>
-                                            );
-                                        })}
-                                    </div>
-                                </>
-                            );
-                        })}
-                    </div>
-                    {/* TIME SLOTS */}
-                    <div className="">
-                        <p className="py-3 font-semibold">Set Time Slot</p>
-                        {slots?.map((slot, s) => {
-                            return (
-                                <div
-                                    key={slot.day}
-                                    className="border-t border-light_gray py-3 flex flex-col gap-2"
-                                >
-                                    <p>{slot.day}</p>
-                                    {slot.timeRange.map((time, t) => {
-                                        return (
-                                            <div
-                                                key={time.id}
-                                                className=" flex items-center w-full gap-2"
-                                            >
-                                                <input
-                                                    type="time"
-                                                    name={`slot-${s}-from-${t}`} // Unique name
-                                                    id={`slot-${s}-from-${t}`}
-                                                    value={time.from}
-                                                    onChange={(e) => handleSlotChange(e, slot, s, t)}
-                                                    className="w-full border border-light_gray rounded-md p-2"
-                                                />
-                                                <input
-                                                    type="time"
-                                                    name={`slot-${s}-to-${t}`} // Unique name
-                                                    id={`slot-${s}-to-${t}`}
-                                                    value={time.to}
-                                                    onChange={(e) => handleSlotChange(e, slot, s, t)}
-                                                    className="w-full border border-light_gray rounded-md p-2"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    title="remove slot"
-                                                    className="flex-shrink-0"
-                                                    onClick={() => removeTimeRange(time, s)}
-                                                >
-                                                    <FiMinusSquare className="text-red size-5"/>
-                                                </button>
-                                            </div>
-                                        );
-                                    })}
-                                    <Button
-                                        type="button"
-                                        variant={"ghost_green"}
-                                        onClick={() => addTimeRange(s)}
-                                    >
-                                        Add Slot
-                                    </Button>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    <div className="flex flex-col w-full gap-3">
-                        <Button type="submit">Save Changes</Button>
-                        <Link href={"/student/dashboard"} className="">
-                            <Button className="w-full" variant={"outline_green"}>
-                                Cancel
-                            </Button>
-                        </Link>
-                        <p>{error}</p>
-                    </div>
-                </div>
-            </form>
+  return (
+    <div className="flex justify-center px-4">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col w-[40rem] h-screen mt-2"
+      >
+        <p className="font-semibold">Settings</p>
+        <button
+          type="submit"
+          className="border border-red rounded-md text-red mt-2 py-2 "
+        >
+          Delete Account
+        </button>
+        <div className="flex sm:flex-row flex-col gap-4 mt-4">
+          <div className="bg-light_gray w-36 h-36 rounded-full overflow-hidden">
+            <Image src={mh} alt="photo" className=" object-cover w-full h-36" />
+          </div>
+          <div className="w-full space-y-2 ">
+            <label htmlFor="displayName">Display Name</label>
+            <input
+              type="text"
+              id="displayName"
+              name="displayName"
+              className="border border-[#bababa] rounded-md h-9 w-full"
+            />
+            <div>
+              <p>Email</p>
+              <p>mhusnain123@gmail.com</p>
+            </div>
+          </div>
         </div>
-    );
+        <div className="flex sm:flex-row flex-col mt-4 gap-2 ">
+          <div className="w-full">
+            <label htmlFor="educationLevel">Education level</label>
+            <input
+              type="text"
+              id="educationLevel"
+              name="educationLevel"
+              className="border border-[#bababa] rounded-md h-9 w-full"
+            />
+          </div>
+          <div className="w-full">
+            <label htmlFor="Institute">Institute</label>
+            <input
+              type="text"
+              id="Institute"
+              name="Institute"
+              className="border border-[#bababa] rounded-md h-9 w-full"
+            />
+          </div>
+        </div>
+        <p className="mt-4">Change Password</p>
+        <div className="flex sm:flex-row flex-col mt-4 gap-2 ">
+          <div className="w-full">
+            <label htmlFor="newPassword">New Password</label>
+            <input
+              type="password"
+              id="newPassword"
+              name="newPassword"
+              className="border border-[#bababa] rounded-md h-9 w-full"
+            />
+          </div>
+          <div className="w-full">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassowrd"
+              className="border border-[#bababa] rounded-md h-9 w-full"
+            />
+          </div>
+        </div>
+        <div className="flex flex-col mt-2">
+          <label htmlFor="about">About</label>
+          <textarea
+            name="about"
+            id="about"
+            className="border border-[#bababa] rounded-md w-full mt-2 h-40"
+          ></textarea>
+          {/* Teaching Levels */}
+          <div className="max-w-[650px] border border-light_gray  rounded-lg overflow-hidden my-3">
+            <div className="grid grid-cols-[160px_1fr] text-lg text-primary_green font-semibold text-center">
+              <div className="p-3">Levels</div>
+              <div className="border-l border-light_gray  p-3">Subjects</div>
+            </div>
+            {data.map((level) => (
+              <div
+                key={level.level}
+                className="grid grid-cols-[160px_1fr] border-t border-light_gray "
+              >
+                <div className="font-semibold   p-3 flex items-center text-justify">
+                  {level.level}
+                </div>
+                <div className="p-3 flex items-center gap-2 flex-wrap border-l border-light_gray ">
+                  {level.subject.map((sub) => (
+                    <div
+                      key={sub}
+                      className="bg-primary_green py-1.5 px-3 text-white rounded-lg"
+                    >
+                      {sub}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* TIME SLOTS */}
+          <div className="">
+            <p className="py-3 font-semibold">Set Time Slot</p>
+            {slots?.map((slot, s) => {
+              return (
+                <div
+                  key={slot.day}
+                  className="border-t border-light_gray py-3 flex flex-col gap-2"
+                >
+                  <p>{slot.day}</p>
+                  {slot.timeRange.map((time, t) => {
+                    return (
+                      <div
+                        key={time.id}
+                        className=" flex items-center w-full gap-2"
+                      >
+                        <input
+                          type="time"
+                          name={`slot-${s}-from-${t}`} // Unique name
+                          id={`slot-${s}-from-${t}`}
+                          value={time.from}
+                          onChange={(e) => handleSlotChange(e, slot, s, t)}
+                          className="w-full border border-light_gray rounded-md p-2"
+                        />
+                        <input
+                          type="time"
+                          name={`slot-${s}-to-${t}`} // Unique name
+                          id={`slot-${s}-to-${t}`}
+                          value={time.to}
+                          onChange={(e) => handleSlotChange(e, slot, s, t)}
+                          className="w-full border border-light_gray rounded-md p-2"
+                        />
+                        <button
+                          type="button"
+                          title="remove slot"
+                          className="flex-shrink-0"
+                          onClick={() => removeTimeRange(time, s)}
+                        >
+                          <FiMinusSquare className="text-red size-5" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                  <Button
+                    type="button"
+                    variant={"ghost_green"}
+                    onClick={() => addTimeRange(s)}
+                  >
+                    Add Slot
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-col w-full gap-3">
+            <Button type="submit">Save Changes</Button>
+            <Link href={"/student/dashboard"} className="">
+              <Button className="w-full" variant={"outline_green"}>
+                Cancel
+              </Button>
+            </Link>
+            <p>{error}</p>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
 };
 
 export default TutorSettings;
