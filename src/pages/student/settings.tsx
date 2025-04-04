@@ -80,29 +80,7 @@ const StudentSettings = () => {
 
     console.log("Updated Time Slots:", updatedSlots);
 
-    if (displayName !== user.displayName) {
-      await updateProfile(user, { displayName: displayName });
-    }
 
-    if (newPassword && confirmPassword) {
-      if (newPassword !== confirmPassword) {
-        setError("new password and confirm password do not match");
-      } else {
-        await updatePassword(user, newPassword);
-      }
-    }
-
-    if (
-      educationLevel !== userData?.educationLevel ||
-      institute !== userData?.instituteName ||
-      about !== userData?.about
-    ) {
-      await updateDoc(doc(db, "users", user.uid), {
-        educationLevel: educationLevel,
-        institute: institute,
-        about: about,
-      });
-    }
   };
 
   const handleSlotChange = (
