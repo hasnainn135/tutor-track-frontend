@@ -17,7 +17,7 @@ export default {
         light_gray: "#BABABA",
         dark_gray: "#1E1E1E",
         red: "#D81F47",
-
+        gold: "#F5B217",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",

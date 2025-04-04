@@ -41,6 +41,56 @@
     "id": "t3",
     "name": "Diana Prince",
     "pfp": "/imgs/face.png",
+
+    "level_of_education": "Master's",
+    "institue": "University of Cambridge",
+    "teaching_experience": "4 years",
+    "about": "Lorem ipsum dolor sit amet consectetur. Duis sem convallis tristique enim tempus porta. Urna venenatis quis in dolor neque viverra nulla vulputate amet. Vestibulum aliquet semper ultriciesquam hac risus. Imperdiet pellentesque adipiscing id convallis lacinia vel non. Lorem ipsum dolor sit amet consectetur. Duis sem convallis tristique enim temLorem ipsum dolor sit amet consectetur. Duis sem convallis tristique enim tempus porta. Urna venenatis quis in dolor neque viverra nulla vulputate amet. Vestibulum aliquet semper ultricies quam hac risus. Imperdiet pellentesque adipiscing id convallis lacinia vel non. Lorem ipsum dolor sit amet consectetur. Duis sem convallis tristique enim tem",
+    "country": "United Kingdom",
+    "state": "",
+    "city": "London",
+    "rating": 3.5,
+    "total_students_taught": 56,
+    "hourly_rate": "$70",
+
+    "offeredSubjects": [
+      {
+        "level": "A level",
+        "subjects": ["Mathematics", "Physics", "French", "Chemistry"]
+      },
+      {
+        "level": "IGCSE",
+        "subjects": ["Mathematics", "Physics", "French"]
+      }
+    ],
+
+    "reviews": [
+      {
+        "id": "rev_1",
+        "reviewerID": "stu_1",
+        "reviewerName": "Abdul Raffey",
+        "rating": 4,
+        "date": "Nov 12/ 2024",
+        "content": "Lorem ipsum dolor sit amet consectetur. Duis sem convallis tristique enim tempus porta. Urna venenatis quis in dolor neque viverra nulla vulputate amet. Vestibulum aliquet semper ultricies quam hac risus. Imperdiet pellentesque adipiscing id convallis lacinia vel non."
+      },
+      {
+        "id": "rev_2",
+        "reviewerID": "stu_2",
+        "reviewerName": "Imran Khan",
+        "rating": 3,
+        "date": "Nov 12/ 2024",
+        "content": "Lorem ipsum dolor sit amet consectetur. Duis sem convallis tristique enim tempus porta. Urna venenatis quis in dolor neque viverra nulla vulputate amet. Vestibulum aliquet semper ultricies quam hac risus. Imperdiet pellentesque adipiscing id convallis lacinia vel non."
+      },
+      {
+        "id": "rev_3",
+        "reviewerID": "stu_3",
+        "reviewerName": "Messi Jr",
+        "rating": 5,
+        "date": "Nov 12/ 2024",
+        "content": "Lorem ipsum dolor sit amet consectetur. Duis sem convallis tristique enim tempus porta. Urna venenatis quis in dolor neque viverra nulla vulputate amet. Vestibulum aliquet semper ultricies quam hac risus. Imperdiet pellentesque adipiscing id convallis lacinia vel non."
+      }
+    ],
+
     "timeSlots": [
       "2 : 00pm",
       "2 : 15pm",

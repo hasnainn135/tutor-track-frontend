@@ -1,6 +1,5 @@
 import SessionListItem from "@/components/SessionListItem";
 import ContainerLayout from "@/pages/layouts/ContainerLayout";
-import { SessionsType, StudentType, TutorType } from "@/types/usertypes";
 import React, { useEffect, useState } from "react";
 import { RxCross2 } from "react-icons/rx";
 import {
@@ -10,18 +9,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useUsers } from "@/hooks/useUsers";
 import DatePicker from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import {
+  FirestoreTimestamp,
+  Session,
+  StudentSchema,
+  TutorSchema,
+} from "@/types/firebase";
+import useAuthState from "@/states/AuthState";
+import {
+  getMyTutors,
+  getSessions,
+  getTutorById,
+  timestampToDateOnly,
+} from "@/utils/firestore";
 
 const StudentSessions = () => {
   const [activeTab, setActiveTab] = useState<number>(1);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [sessionLoading, setSessionLoading] = useState<boolean>(false);
-  const [sessions, setSessions] = useState<SessionsType[] | undefined>([]);
-  const [std, setStd] = useState<StudentType | null>(null);
-  const [bookedTutors, setBookedTutors] = useState<TutorType[]>([]);
+  const [sessions, setSessions] = useState<Session[] | undefined>([]);
+  const [std, setStd] = useState<StudentSchema | null>(null);
+  const [bookedTutors, setBookedTutors] = useState<TutorSchema[]>([]);
   //FILTERS
   const [date, setDate] = useState<Date | undefined>();
   const [sessionFilters, setSessionFilters] = useState<{
@@ -42,23 +53,18 @@ const StudentSessions = () => {
     toDuration: "",
   });
 
-  const { loggedInStudent, getTutorById } = useUsers();
+  // const { loggedInStudent, getTutorById } = useUsers();
+  const { user, userData } = useAuthState();
 
   useEffect(() => {
     const fetchStudentSessions = async () => {
       setSessionLoading(true);
       try {
-        const response = await fetch("/sessions.json");
-        if (!response.ok) {
-          throw new Error("Failed to load data");
-        }
-        const allSessions: SessionsType[] = await response.json();
+        if (!user) return;
+        const response = await getSessions(user?.uid, "student");
+        console.log(response);
 
-        const tutorSessions = allSessions.filter((session) =>
-          loggedInStudent?.sessions?.includes(session.id)
-        );
-
-        setSessions(tutorSessions);
+        setSessions(response);
       } catch (err) {
         setSessionError((err as Error).message);
       } finally {
@@ -67,32 +73,24 @@ const StudentSessions = () => {
     };
 
     async function fetchStudentTutors() {
-      if (!loggedInStudent) return;
+      if (!user) return;
 
-      if (loggedInStudent.booked_tutors)
-        try {
-          const tutors = await Promise.all(
-            loggedInStudent.booked_tutors.map(async (tutorId) => {
-              return await getTutorById(tutorId.tutor_id);
-            })
-          );
-          // Filter out null values
-          const validTutors = tutors.filter(
-            (tutor): tutor is TutorType => tutor !== null
-          );
-          setBookedTutors(validTutors);
-        } catch (error) {
-          console.error("Error fetching Tutor Data:", error);
-        }
+      try {
+        const tutors = await getMyTutors(userData as StudentSchema);
+
+        setBookedTutors(tutors);
+      } catch (error) {
+        console.error("Error fetching Tutor Data:", error);
+      }
     }
 
-    if (loggedInStudent) fetchStudentSessions();
+    fetchStudentSessions();
     fetchStudentTutors();
-  }, [loggedInStudent]);
+  }, [user, userData]);
 
   //GROUP Sessions by date
   const groupSessionsByDate = (
-    status: SessionsType["status"] | SessionsType["status"][],
+    status: Session["status"] | Session["status"][],
     sortDescending = false
   ) => {
     return (
@@ -105,13 +103,13 @@ const StudentSessions = () => {
         .sort(
           (a, b) =>
             sortDescending
-              ? new Date(b.session_date).getTime() -
-                new Date(a.session_date).getTime() // Descending for Previous & Canceled
-              : new Date(a.session_date).getTime() -
-                new Date(b.session_date).getTime() // Ascending for Upcoming
+              ? timestampToDateOnly(b.sessionDate).getTime() -
+                timestampToDateOnly(a.sessionDate).getTime()
+              : timestampToDateOnly(a.sessionDate).getTime() -
+                timestampToDateOnly(b.sessionDate).getTime() // Ascending for Upcoming
         )
-        .reduce<Record<string, SessionsType[]>>((acc, session) => {
-          const sessionDate = new Date(session.session_date);
+        .reduce<Record<string, Session[]>>((acc, session) => {
+          const sessionDate = timestampToDateOnly(session.sessionDate);
           const today = new Date();
           const tomorrow = new Date();
           tomorrow.setDate(today.getDate() + 1);
@@ -136,13 +134,11 @@ const StudentSessions = () => {
     );
   };
 
-  const upcomingSessions = groupSessionsByDate("upcoming"); // Ascending order
-  const previousSessions = groupSessionsByDate(["completed", "ongoing"], true); // Descending order
+  const upcomingSessions = groupSessionsByDate("incomplete"); // Ascending order
+  const previousSessions = groupSessionsByDate(["completed"], true); // Descending order
   const canceledSessions = groupSessionsByDate("canceled", true); // Descending order
 
-  const renderSessionSection = (
-    sessionsByDate: Record<string, SessionsType[]>
-  ) => {
+  const renderSessionSection = (sessionsByDate: Record<string, Session[]>) => {
     if (Object.keys(sessionsByDate).length === 0) return <div>No Sessions</div>;
     return (
       <div className="flex flex-col gap-2">
@@ -238,7 +234,8 @@ const StudentSessions = () => {
             {/* FILTERS */}
             <form
               action="#"
-              className="pt-4 flex flex-col items-center gap-3 w-full">
+              className="pt-4 flex flex-col items-center gap-3 w-full"
+            >
               {/* Tutor */}
               <div className="flex flex-col gap-1 w-full">
                 <label htmlFor="tutor" className="text-sm">
@@ -248,7 +245,8 @@ const StudentSessions = () => {
                   defaultValue="All_Tutors"
                   onValueChange={(value) => {
                     handleFilterChanges("tutor_id", value);
-                  }}>
+                  }}
+                >
                   <SelectTrigger id="tutor" className="w-full ">
                     <SelectValue placeholder="Select Tutor" />
                   </SelectTrigger>
@@ -257,8 +255,8 @@ const StudentSessions = () => {
                     {bookedTutors.map((tutor) => {
                       if (tutor)
                         return (
-                          <SelectItem key={tutor.id} value={tutor.id}>
-                            {tutor.name}
+                          <SelectItem key={tutor.uid} value={tutor.uid}>
+                            {tutor.fullName}
                           </SelectItem>
                         );
                     })}
@@ -300,7 +298,8 @@ const StudentSessions = () => {
                     return (
                       <div
                         key={date}
-                        className="flex items-center gap-2 bg-primary_green py-1.5 px-3 rounded-md text-white">
+                        className="flex items-center gap-2 bg-primary_green py-1.5 px-3 rounded-md text-white"
+                      >
                         <p>{date}</p>
                         <button
                           className="font-semibold mt-[1px] hover:text-rose-500"
@@ -309,7 +308,8 @@ const StudentSessions = () => {
 
                             removeDates.splice(removeDates.indexOf(date), 1);
                             handleFilterChanges("dates", removeDates);
-                          }}>
+                          }}
+                        >
                           &#10005;
                         </button>
                       </div>
@@ -331,7 +331,8 @@ const StudentSessions = () => {
                       addDay.push(value);
                       handleFilterChanges("days", addDay);
                     }
-                  }}>
+                  }}
+                >
                   <SelectTrigger id="days" className="w-full">
                     <SelectValue placeholder="Select Day" />
                   </SelectTrigger>
@@ -359,7 +360,8 @@ const StudentSessions = () => {
                     return (
                       <div
                         key={day}
-                        className="flex items-center gap-2 bg-primary_green py-1.5 px-3 rounded-md text-white">
+                        className="flex items-center gap-2 bg-primary_green py-1.5 px-3 rounded-md text-white"
+                      >
                         <p>{day}</p>
                         <button
                           className="font-semibold mt-[1px] hover:text-rose-500"
@@ -368,7 +370,8 @@ const StudentSessions = () => {
 
                             removeDay.splice(removeDay.indexOf(day), 1);
                             handleFilterChanges("days", removeDay);
-                          }}>
+                          }}
+                        >
                           &#10005;
                         </button>
                       </div>
@@ -440,7 +443,8 @@ const SessionTabs = ({
           activeTab === 1
             ? "border-primary_green font-semibold bg-light_green"
             : ""
-        }`}>
+        }`}
+      >
         Upcoming
       </button>
       <button
@@ -449,7 +453,8 @@ const SessionTabs = ({
           activeTab === 2
             ? "border-primary_green font-semibold bg-light_green"
             : ""
-        }`}>
+        }`}
+      >
         Previous
       </button>
       <button
@@ -458,7 +463,8 @@ const SessionTabs = ({
           activeTab === 3
             ? "border-primary_green font-semibold bg-light_green"
             : ""
-        }`}>
+        }`}
+      >
         Canceled
       </button>
     </div>

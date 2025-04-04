@@ -1,5 +1,3 @@
-import { useUsers } from "@/hooks/useUsers";
-import { SessionsType, StudentType, TutorType } from "@/types/usertypes";
 import React, { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import {
@@ -11,66 +9,140 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
+import useAuthState from "@/states/AuthState";
+import {
+  getTutorById,
+  getStudentById,
+  updateSessionAttendance,
+  timestampToDateOnly,
+  cancelSession,
+} from "@/utils/firestore";
+import {
+  FirestoreTimestamp,
+  Session,
+  StudentSchema,
+  TutorSchema,
+} from "@/types/firebase";
 
-const SessionListItem = ({ session }: { session: SessionsType }) => {
-  const [tutor, setTutor] = useState<TutorType | null>(null);
-  const [student, setStudent] = useState<StudentType | null>(null);
-  const { getTutorById, getStudentById, userType } = useUsers();
+const SessionListItem = ({ session }: { session: Session }) => {
+  const [tutor, setTutor] = useState<TutorSchema | null>(null);
+  const [student, setStudent] = useState<StudentSchema | null>(null);
+  const [sessionOngoing, setSessionOngoing] = useState<boolean>(false);
+  const { user, userData } = useAuthState();
 
   //fetch Tutor or Student data
   useEffect(() => {
     const fetchTutor = async () => {
-      setTutor(await getTutorById(session.tutor_id));
+      setTutor(await getTutorById(session.tutorId));
     };
     const fetchStudent = async () => {
-      setStudent(await getStudentById(session.student_id));
+      setStudent(await getStudentById(session.studentId));
     };
 
-    if (userType === "tutor")
+    if (userData?.role === "tutor")
       fetchStudent(); // FETCH STD DATA TO DISPLAY IN LIST
-    else if (userType === "student") fetchTutor(); // FETCH TUTOR DATA TO DISPLAY IN LIST
+    else if (userData?.role === "student") fetchTutor(); // FETCH TUTOR DATA TO DISPLAY IN LIST
   }, []);
 
-  const cancelSession = () => {
-    console.log(session.status);
-  };
-  const markTutorAttendance = () => {
-    console.log(session.tutor_absent);
-  };
-  const markStudentAttendance = () => {
-    console.log(session.student_absent);
+  const parseTime = (timeString: string) => {
+    // Remove spaces and extract hour, minute, and AM/PM
+    const [time, period] = timeString.replace(/\s/g, "").split(/(am|pm)/i);
+    const [hour, minute] = time.split(":").map(Number);
+    let hours = hour;
+
+    // Convert to 24-hour format
+    if (period)
+      if (period.toLowerCase() === "pm" && hour !== 12) {
+        hours += 12;
+      } else if (period.toLowerCase() === "am" && hour === 12) {
+        hours = 0;
+      }
+
+    // Create today's date with extracted time
+    const now = new Date();
+    console.log(timeString);
+    console.log(
+      new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minute)
+    );
+
+    return new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      hours,
+      minute
+    );
   };
 
-  if (userType === "student")
+  useEffect(() => {
+    const checkSessionOngoing = () => {
+      if (session.status === "incomplete" && session.bookingStartTime) {
+        const bookingTime = parseTime(session.bookingStartTime);
+        const currentTime = new Date();
+
+        // Compare if booking time is equal to or greater than current time
+        if (bookingTime >= currentTime) {
+          setSessionOngoing(true);
+        } else {
+          setSessionOngoing(false);
+        }
+      } else {
+        setSessionOngoing(false);
+      }
+    };
+
+    checkSessionOngoing();
+  }, [session]);
+
+  const cancelCurrentSession = async () => {
+    try {
+      await cancelSession(session.id);
+    } catch (e) {
+      console.log(e);
+      console.log(session.status);
+    }
+  };
+  const markTutorAttendance = () => {
+    console.log(session.isTutorAbsent);
+  };
+  const markStudentAttendance = () => {
+    console.log(session.isStudentAbsent);
+  };
+
+  if (userData?.role === "student")
     return (
       <div
         className={`h-16 rounded-md border ${
-          session.status === "ongoing"
-            ? "border-bright_green"
-            : "border-light_gray"
-        } bg-[#FBFBFB] overflow-hidden flex items-center`}>
+          sessionOngoing ? "border-bright_green" : "border-light_gray"
+        } bg-[#FBFBFB] overflow-hidden flex items-center`}
+      >
         {/* LEFT COLORED BORDER */}
         <div
           className={`w-1 h-full ${
             session.status === "canceled"
               ? "bg-red"
-              : new Date(session.session_date).toDateString() ===
-                  new Date().toDateString() || session.status === "ongoing"
+              : timestampToDateOnly(session.sessionDate).toDateString() ===
+                  new Date().toDateString() || sessionOngoing
               ? "bg-bright_green"
-              : session.tutor_absent
+              : session.isTutorAbsent
               ? "bg-primary_green"
               : "bg-light_gray"
-          }`}></div>
+          }`}
+        ></div>
         <div className="flex items-center justify-between px-2 py-3 w-full">
           <div className="flex items-center gap-6">
             {/* Tutor INFO */}
             <div className="flex items-center justify-start gap-2 w-48">
               <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-200">
-                <img src={tutor?.pfp} alt="" className="object-cover h-9" />
+                <img
+                  src={tutor?.profilePicture ?? undefined}
+                  alt=""
+                  className="object-cover h-9"
+                />
               </div>
               <div className="">
-                <p>{tutor?.name}</p>
-                {session.status === "completed" && session.tutor_absent && (
+                <p>{tutor?.fullName}</p>
+                {session.status === "completed" && session.isTutorAbsent && (
                   <p className="text-sm text-primary_green font-semibold">
                     Marked Absent
                   </p>
@@ -81,7 +153,7 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
             <div className="w-28">
               <p className="text-sm">
                 {(() => {
-                  const sessionDate = new Date(session.session_date);
+                  const sessionDate = timestampToDateOnly(session.sessionDate);
                   const today = new Date();
                   const tomorrow = new Date();
                   tomorrow.setDate(today.getDate() + 1); // Move one day ahead
@@ -101,16 +173,19 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
                   }
                 })()}
               </p>
-              <p className="text-lg font-semibold">{session.session_time}</p>
+              <p className="text-lg font-semibold">
+                {session.bookingStartTime}
+              </p>
             </div>
             {/* Session Limit */}
-            <div className="w-28">
+            <div className="">
               <p className="text-sm">Session Limit</p>
               <p
                 className={`text-lg font-semibold ${
-                  session.status === "ongoing" && "text-bright_green"
-                }`}>
-                {session.status === "canceled" ? "-" : session.session_limit}
+                  sessionOngoing && "text-bright_green"
+                }`}
+              >
+                {session.status === "canceled" ? "-" : session.duration}
               </p>
             </div>
           </div>
@@ -120,7 +195,7 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
                 View Notes
               </Button>
             </Link>
-          ) : session.status === "ongoing" ? (
+          ) : sessionOngoing ? (
             <p className="text-bright_green font-semibold">Session Ongoing</p>
           ) : (
             ""
@@ -135,20 +210,22 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   className=" bg-white border-none"
-                  align="end">
-                  {session.status === "completed" ||
-                  session.status === "ongoing" ? (
+                  align="end"
+                >
+                  {session.status === "completed" || sessionOngoing ? (
                     <DropdownMenuItem
                       className="cursor-pointer"
-                      onClick={markTutorAttendance}>
-                      {session.tutor_absent
+                      onClick={markTutorAttendance}
+                    >
+                      {session.isTutorAbsent
                         ? "Mark Tutor Present"
                         : "Mark Tutor Absent"}
                     </DropdownMenuItem>
-                  ) : session.status === "upcoming" ? (
+                  ) : session.status === "incomplete" ? (
                     <DropdownMenuItem
                       className="cursor-pointer"
-                      onClick={cancelSession}>
+                      onClick={cancelCurrentSession}
+                    >
                       Cancel Session
                     </DropdownMenuItem>
                   ) : (
@@ -164,68 +241,72 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
 
   const [showStartButton, setShowStartButton] = useState(false);
 
-  useEffect(() => {
-    const checkTime = () => {
-      const now = new Date();
-      const sessionDate = new Date(session.session_date);
+  // useEffect(() => {
+  //   const checkTime = () => {
+  //     const now = new Date();
+  //     const sessionDate = new Date(session.createdAt);
 
-      // Convert session_time ("12:00 PM") to 24-hour format
-      const timeParts = session.session_time.match(/(\d+):(\d+) (\w+)/);
-      if (!timeParts) return;
+  //     // Convert session_time ("12:00 PM") to 24-hour format
+  //     const timeParts = session.createdAt.match(/(\d+):(\d+) (\w+)/);
+  //     if (!timeParts) return;
 
-      let hours = parseInt(timeParts[1]);
-      const minutes = parseInt(timeParts[2]);
-      const period = timeParts[3];
+  //     let hours = parseInt(timeParts[1]);
+  //     const minutes = parseInt(timeParts[2]);
+  //     const period = timeParts[3];
 
-      if (period === "PM" && hours !== 12) hours += 12;
-      if (period === "AM" && hours === 12) hours = 0;
+  //     if (period === "PM" && hours !== 12) hours += 12;
+  //     if (period === "AM" && hours === 12) hours = 0;
 
-      sessionDate.setHours(hours, minutes, 0, 0); // Set session time
+  //     sessionDate.setHours(hours, minutes, 0, 0); // Set session time
 
-      // Calculate time difference in minutes
-      const timeDiff = (sessionDate.getTime() - now.getTime()) / 60000;
+  //     // Calculate time difference in minutes
+  //     const timeDiff = (sessionDate.getTime() - now.getTime()) / 60000;
 
-      // Show button if session time is in the next 10 minutes
-      setShowStartButton(timeDiff <= 10 && timeDiff > 0);
-    };
+  //     // Show button if session time is in the next 10 minutes
+  //     setShowStartButton(timeDiff <= 10 && timeDiff > 0);
+  //   };
 
-    // Check every minute
-    checkTime();
-    const interval = setInterval(checkTime, 60000);
+  //   // Check every minute
+  //   checkTime();
+  //   const interval = setInterval(checkTime, 60000);
 
-    return () => clearInterval(interval); // Cleanup interval on unmount
-  }, [session]);
+  //   return () => clearInterval(interval); // Cleanup interval on unmount
+  // }, [session]);
 
-  if (userType === "tutor")
+  if (userData?.role === "tutor")
     return (
       <div
         className={`h-16 rounded-md border ${
-          session.status === "ongoing"
-            ? "border-bright_green"
-            : "border-light_gray"
-        } bg-[#FBFBFB] overflow-hidden flex items-center`}>
+          sessionOngoing ? "border-bright_green" : "border-light_gray"
+        } bg-[#FBFBFB] overflow-hidden flex items-center`}
+      >
         {/* LEFT COLORED BORDER */}
         <div
           className={`w-1 h-full ${
             session.status === "canceled"
               ? "bg-red"
-              : new Date(session.session_date).toDateString() ===
-                  new Date().toDateString() || session.status === "ongoing"
+              : timestampToDateOnly(session.sessionDate).toDateString() ===
+                  new Date().toDateString() || sessionOngoing
               ? "bg-bright_green"
-              : session.student_absent
+              : session.isStudentAbsent
               ? "bg-primary_green"
               : "bg-light_gray"
-          }`}></div>
+          }`}
+        ></div>
         <div className="flex items-center justify-between px-2 py-3 w-full">
           <div className="flex items-center gap-6">
             {/* student INFO */}
             <div className="flex items-center justify-start gap-2 w-48">
               <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-200">
-                <img src={student?.pfp} alt="" className="object-cover h-9" />
+                <img
+                  src={student?.profilePicture ?? undefined}
+                  alt=""
+                  className="object-cover h-9"
+                />
               </div>
               <div className="">
-                <p>{student?.name}</p>
-                {session.status === "completed" && session.student_absent && (
+                <p>{student?.fullName}</p>
+                {session.status === "completed" && session.isStudentAbsent && (
                   <p className="text-sm text-primary_green font-semibold">
                     Marked Absent
                   </p>
@@ -236,7 +317,7 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
             <div className="w-28">
               <p className="text-sm">
                 {(() => {
-                  const sessionDate = new Date(session.session_date);
+                  const sessionDate = timestampToDateOnly(session.sessionDate);
                   const today = new Date();
                   const tomorrow = new Date();
                   tomorrow.setDate(today.getDate() + 1); // Move one day ahead
@@ -256,16 +337,19 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
                   }
                 })()}
               </p>
-              <p className="text-lg font-semibold">{session.session_time}</p>
+              <p className="text-lg font-semibold">
+                {session.bookingStartTime}
+              </p>
             </div>
             {/* Session Limit */}
-            <div className="w-28">
+            <div className="">
               <p className="text-sm">Session Limit</p>
               <p
                 className={`text-lg font-semibold ${
-                  session.status === "ongoing" && "text-bright_green"
-                }`}>
-                {session.status === "canceled" ? "-" : session.session_limit}
+                  sessionOngoing && "text-bright_green"
+                }`}
+              >
+                {session.status === "canceled" ? "-" : session.duration}
               </p>
             </div>
           </div>
@@ -275,14 +359,14 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
                 View Notes
               </Button>
             </Link>
-          ) : session.status === "upcoming" &&
-            new Date(session.session_date).toDateString() ===
+          ) : session.status === "incomplete" &&
+            timestampToDateOnly(session.sessionDate).toDateString() ===
               new Date().toDateString() &&
             showStartButton ? (
             <Link href={``}>
               <Button size="sm">Start Session</Button>
             </Link>
-          ) : session.status === "ongoing" ? (
+          ) : sessionOngoing ? (
             <p className="text-bright_green font-semibold">Session Ongoing</p>
           ) : null}
           <div className="">
@@ -295,20 +379,22 @@ const SessionListItem = ({ session }: { session: SessionsType }) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   className=" bg-white border-none"
-                  align="end">
-                  {session.status === "completed" ||
-                  session.status === "ongoing" ? (
+                  align="end"
+                >
+                  {session.status === "completed" || sessionOngoing ? (
                     <DropdownMenuItem
                       className="cursor-pointer"
-                      onClick={markStudentAttendance}>
-                      {session.student_absent
+                      onClick={markStudentAttendance}
+                    >
+                      {session.isStudentAbsent
                         ? "Mark Student Present"
                         : "Mark Student Absent"}
                     </DropdownMenuItem>
-                  ) : session.status === "upcoming" ? (
+                  ) : session.status === "incomplete" ? (
                     <DropdownMenuItem
                       className="cursor-pointer"
-                      onClick={cancelSession}>
+                      onClick={cancelCurrentSession}
+                    >
                       Cancel Session
                     </DropdownMenuItem>
                   ) : (

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { FC } from "react";
+import React, { FC, useState } from "react";
 import { RxCalendar } from "react-icons/rx";
 import { RiSettings3Line } from "react-icons/ri";
 import { PiUsersThree, PiGraduationCap } from "react-icons/pi";
@@ -8,7 +8,10 @@ import { MdLogout } from "react-icons/md";
 import { FaRegCircleUser } from "react-icons/fa6";
 import { IoAnalytics } from "react-icons/io5";
 import { BsGrid1X2 } from "react-icons/bs";
-import { useUsers } from "@/hooks/useUsers";
+import { HiMenu } from "react-icons/hi";
+import { IoClose } from "react-icons/io5";
+import useAuthState from "@/states/AuthState";
+import { MdOutlineBook } from "react-icons/md";
 
 type StudentSidebarProps = {
   children: React.ReactNode;
@@ -16,27 +19,28 @@ type StudentSidebarProps = {
 
 const StudentSidebar: FC<StudentSidebarProps> = ({ children }) => {
   const router = useRouter();
-  const { userType } = useUsers();
+  const { user, userData, signOut } = useAuthState();
+  const userType = userData?.role;
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
-  // Define pages where the sidebar should be shown
   const pagesWithSidebar = [
-    // student pages
     "/student/dashboard",
     "/student/sessions",
     "/student/my-tutors",
     "/student/find-tutors",
     "/student/book-a-session",
-    // tutor pages
+    "/student/add-tutor",
     "/tutor/dashboard",
     "/tutor/sessions",
     "/tutor/my-students",
     "/tutor/analytics",
-    //chat
+    "/tutor/add-student",
+    "/tutor/my-profile",
     "/chat",
   ];
 
   const dynamicPagesWithSidebar = [
-    /^\/student\/sessions\/[^/]+\/notes$/, // Matches /student/sessions/{sessionId}/notes
+    /^\/student\/sessions\/[^/]+\/notes$/,
     /^\/tutor\/sessions\/[^/]+\/notes$/,
   ];
 
@@ -65,6 +69,11 @@ const StudentSidebar: FC<StudentSidebarProps> = ({ children }) => {
       label: "Find Tutors",
       icon: <PiGraduationCap className="size-6" />,
     },
+    {
+      href: "/student/book-a-session",
+      label: "Book a Session",
+      icon: <MdOutlineBook className="size-6" />,
+    },
   ];
   const tutorLinks = [
     {
@@ -89,114 +98,208 @@ const StudentSidebar: FC<StudentSidebarProps> = ({ children }) => {
     },
   ];
 
+  const navLinks =
+    userType === "student"
+      ? studentLinks
+      : userType === "tutor"
+      ? tutorLinks
+      : [];
+
   return (
-    <div className={`${showSidebar ? "flex bg-[#E6E6E6]" : ""}`}>
+    <div className={`${showSidebar ? "bg-[#E6E6E6] min-h-screen flex" : ""}`}>
+      {/* Sidebar */}
       {showSidebar && (
-        <aside className="bg-dark_green text-white min-h-svh relative w-80">
-          <div className="h-svh px-7 py-9 flex flex-col gap-9 w-80 sticky top-0">
-            <div className="">
-              <img src="/imgs/TutorTrack.svg" alt="Tutor track logo" />
+        <>
+          {/* Mobile Sidebar Overlay */}
+          <div
+            className={`lg:hidden fixed flex flex-col top-0 left-0 h-full w-64 bg-dark_green text-white z-50 transform transition-transform duration-300 ${
+              isMobileOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+          >
+            <div className="p-5 flex justify-between items-center border-b border-white/20">
+              <img src="/imgs/TutorTrack.svg" alt="Logo" className="w-32 " />
+              <IoClose
+                className="text-white size-6 cursor-pointer"
+                onClick={() => setIsMobileOpen(false)}
+              />
             </div>
 
-            <div className="h-full flex-col flex justify-between">
-              {/* TOP LINKS */}
+            <div className="px-6 py-4 flex flex-col justify-between h-full ">
               <div className="flex flex-col gap-2">
-                {userType === "student" ? (
-                  <>
-                    {studentLinks.map((nav) => {
-                      return (
-                        <Link
-                          key={nav.href}
-                          href={nav.href}
-                          className={`px-4 py-2 flex gap-2 items-center text-lg hover:bg-light_green/10 rounded-md w-full ${
-                            router.pathname === nav.href
-                              ? "bg-light_green/10 font-semibold"
-                              : ""
-                          }`}>
-                          {nav.icon}
-                          {nav.label}
-                        </Link>
-                      );
-                    })}
-                  </>
-                ) : userType === "tutor" ? (
-                  <>
-                    {tutorLinks.map((nav) => {
-                      return (
-                        <Link
-                          key={nav.href}
-                          href={nav.href}
-                          className={`px-4 py-2 flex gap-4 items-center text-lg hover:bg-light_green/10 rounded-md w-full ${
-                            router.pathname === nav.href
-                              ? "bg-light_green/10 font-semibold"
-                              : ""
-                          }`}>
-                          {nav.icon}
-                          {nav.label}
-                        </Link>
-                      );
-                    })}
-                  </>
-                ) : (
-                  <></>
-                )}
+                {navLinks.map((nav) => (
+                  <Link
+                    key={nav.href}
+                    href={nav.href}
+                    className={`px-3 py-2 flex gap-3 items-center text-lg rounded-md hover:bg-light_green/10 ${
+                      router.pathname === nav.href
+                        ? "bg-light_green/10 font-semibold"
+                        : ""
+                    }`}
+                    onClick={() => setIsMobileOpen(false)}
+                  >
+                    {nav.icon}
+                    {nav.label}
+                  </Link>
+                ))}
               </div>
-              {/* BOTTOM LINKS */}
-              <div className="flex flex-col">
+              <div className=" flex flex-col gap-2">
                 {userType === "student" ? (
+                  <Link
+                    href="/student/settings"
+                    className={`px-3 py-2 flex gap-3 items-center text-lg rounded-md hover:bg-light_green/10 ${
+                      router.pathname === "/student/settings"
+                        ? "bg-light_green/10 font-semibold"
+                        : ""
+                    }`}
+                    onClick={() => setIsMobileOpen(false)}
+                  >
+                    <RiSettings3Line className="size-5" />
+                    Settings
+                  </Link>
+                ) : (
                   <>
                     <Link
-                      href={"/student/settings"}
-                      className={`px-4 py-2 flex gap-2 items-center text-lg hover:bg-light_green/10 rounded-md w-full ${
-                        router.pathname === "/student/settings"
-                          ? "bg-light_green/10 font-semibold"
-                          : ""
-                      }`}>
-                      <RiSettings3Line className="size-5" />
-                      Settings
-                    </Link>
-                  </>
-                ) : userType === "tutor" ? (
-                  <>
-                    <Link
-                      href={"/tutor/my-profile"}
-                      className={`px-4 py-2 flex gap-2 items-center text-lg hover:bg-light_green/10 rounded-md w-full ${
+                      href="/tutor/my-profile"
+                      className={`px-3 py-2 flex gap-3 items-center text-lg rounded-md hover:bg-light_green/10 ${
                         router.pathname === "/tutor/my-profile"
                           ? "bg-light_green/10 font-semibold"
                           : ""
-                      }`}>
+                      }`}
+                      onClick={() => setIsMobileOpen(false)}
+                    >
                       <FaRegCircleUser className="size-5" />
                       My Profile
                     </Link>
                     <Link
-                      href={"/tutor/settings"}
-                      className={`px-4 py-2 flex gap-2 items-center text-lg hover:bg-light_green/10 rounded-md w-full ${
+                      href="/tutor/settings"
+                      className={`px-3 py-2 flex gap-3 items-center text-lg rounded-md hover:bg-light_green/10 ${
                         router.pathname === "/tutor/settings"
                           ? "bg-light_green/10 font-semibold"
                           : ""
-                      }`}>
+                      }`}
+                      onClick={() => setIsMobileOpen(false)}
+                    >
                       <RiSettings3Line className="size-5" />
                       Settings
                     </Link>
                   </>
-                ) : (
-                  <></>
                 )}
 
                 <Link
-                  href={"/login"}
-                  className="px-4 py-2 flex gap-2 items-center text-lg hover:bg-light_green/10 rounded-md w-full">
+                  onClick={async () => {
+                    await signOut();
+                    setIsMobileOpen(false);
+                  }}
+                  href="/auth/login"
+                  className="px-3 py-2 flex gap-3 items-center text-lg rounded-md hover:bg-light_green/10"
+                >
                   <MdLogout className="size-5" />
                   Log Out
                 </Link>
               </div>
             </div>
           </div>
-        </aside>
+
+          {/* Desktop Sidebar */}
+          <aside className="hidden lg:flex bg-dark_green text-white min-h-screen w-80 sticky top-0">
+            <div className="h-svh px-7 py-9 flex flex-col gap-9 w-80 sticky top-0">
+              <img
+                src="/imgs/TutorTrack.svg"
+                alt="Tutor track logo"
+                className="max-w-52 "
+              />
+
+              <div className="flex flex-col justify-between h-full">
+                <div className="flex flex-col gap-2">
+                  {navLinks.map((nav) => (
+                    <Link
+                      key={nav.href}
+                      href={nav.href}
+                      className={`px-4 py-2 flex gap-3 items-center text-lg hover:bg-light_green/10 rounded-md ${
+                        router.pathname === nav.href
+                          ? "bg-light_green/10 font-semibold"
+                          : ""
+                      }`}
+                    >
+                      {nav.icon}
+                      {nav.label}
+                    </Link>
+                  ))}
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  {userType === "student" ? (
+                    <Link
+                      href="/student/settings"
+                      className={`px-4 py-2 flex gap-3 items-center text-lg hover:bg-light_green/10 rounded-md ${
+                        router.pathname === "/student/settings"
+                          ? "bg-light_green/10 font-semibold"
+                          : ""
+                      }`}
+                    >
+                      <RiSettings3Line className="size-5" />
+                      Settings
+                    </Link>
+                  ) : (
+                    <>
+                      <Link
+                        href="/tutor/my-profile"
+                        className={`px-4 py-2 flex gap-3 items-center text-lg hover:bg-light_green/10 rounded-md ${
+                          router.pathname === "/tutor/my-profile"
+                            ? "bg-light_green/10 font-semibold"
+                            : ""
+                        }`}
+                      >
+                        <FaRegCircleUser className="size-5" />
+                        My Profile
+                      </Link>
+                      <Link
+                        href="/tutor/settings"
+                        className={`px-4 py-2 flex gap-3 items-center text-lg hover:bg-light_green/10 rounded-md ${
+                          router.pathname === "/tutor/settings"
+                            ? "bg-light_green/10 font-semibold"
+                            : ""
+                        }`}
+                      >
+                        <RiSettings3Line className="size-5" />
+                        Settings
+                      </Link>
+                    </>
+                  )}
+
+                  <Link
+                    onClick={async () => await signOut()}
+                    href="/auth/login"
+                    className="px-4 py-2 flex gap-3 items-center text-lg hover:bg-light_green/10 rounded-md"
+                  >
+                    <MdLogout className="size-5" />
+                    Log Out
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </>
       )}
 
-      <div className={`${showSidebar ? "py-9 px-10 w-full" : ""}`}>
-        {children}
+      {/* Main Content */}
+      <div className="flex-1 w-full">
+        {/* Mobile Topbar */}
+        {showSidebar && (
+          <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-white shadow-md sticky top-0 z-40">
+            <button onClick={() => setIsMobileOpen(true)}>
+              <HiMenu className="text-dark_green size-6" />
+            </button>
+            <img
+              src="/imgs/TutorTrackBlack.svg"
+              alt="Tutor track logo"
+              className="w-28 "
+            />
+            <div className="w-6" /> {/* Empty space for balance */}
+          </div>
+        )}
+
+        <div className={`${showSidebar ? "p-4 lg:p-10" : ""}`}>{children}</div>
       </div>
     </div>
   );
