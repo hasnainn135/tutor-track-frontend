@@ -25,39 +25,39 @@ const data = [
     },
 ];
 
-const fakeInitialData: WeeklySchedule[] = [
-    {
-        day: "Monday",
-        timeRange: [
-            {id: "s1t1", from: "10:00", to: "11:00"},
-            {id: "s1t2", from: "12:00", to: "13:00"},
-        ],
-    },
-    {
-        day: "Tuesday",
-        timeRange: [{id: "s2t1", from: "10:00", to: "11:00"}],
-    },
-    {
-        day: "Wednesday",
-        timeRange: [],
-    },
-    {
-        day: "Thursday",
-        timeRange: [],
-    },
-    {
-        day: "Friday",
-        timeRange: [],
-    },
-    {
-        day: "Saturday",
-        timeRange: [],
-    },
-    {
-        day: "Sunday",
-        timeRange: [],
-    },
-]
+// const fakeInitialData: WeeklySchedule[] = [
+//     {
+//         day: "Monday",
+//         timeRange: [
+//             {id: "s1t1", from: "10:00", to: "11:00"},
+//             {id: "s1t2", from: "12:00", to: "13:00"},
+//         ],
+//     },
+//     {
+//         day: "Tuesday",
+//         timeRange: [{id: "s2t1", from: "10:00", to: "11:00"}],
+//     },
+//     {
+//         day: "Wednesday",
+//         timeRange: [],
+//     },
+//     {
+//         day: "Thursday",
+//         timeRange: [],
+//     },
+//     {
+//         day: "Friday",
+//         timeRange: [],
+//     },
+//     {
+//         day: "Saturday",
+//         timeRange: [],
+//     },
+//     {
+//         day: "Sunday",
+//         timeRange: [],
+//     },
+// ]
 
 const TutorSettings = () => {
     const {user, userData} = useAuthState();
@@ -66,7 +66,7 @@ const TutorSettings = () => {
 
     if (!user) return <></>;
 
-    const [slots, setSlots] = useState<WeeklySchedule[]>();
+    const [slots, setSlots] = useState<WeeklySchedule[] | null>([]);
 
     const handleSlotChange = (
         e: React.ChangeEvent<HTMLInputElement>,
@@ -74,7 +74,11 @@ const TutorSettings = () => {
         slotIndex: number,
         timeRangeIndex: number
     ) => {
-        const newSlots = [...slots];
+
+        let newSlots: WeeklySchedule[] = [];
+        if (slots) {
+            newSlots = [...slots];
+        }
 
         if (e.currentTarget.id === `slot-${slotIndex}-from-${timeRangeIndex}`)
             newSlots[slotIndex].timeRange[timeRangeIndex].from =
@@ -89,7 +93,10 @@ const TutorSettings = () => {
         time: { from: string; to: string },
         slotIndex: number
     ) => {
-        const newSlots = [...slots];
+        let newSlots: WeeklySchedule[] = [];
+        if (slots) {
+            newSlots = [...slots];
+        }
         const slot = newSlots[slotIndex];
         const timeRangeIndex = slot.timeRange.findIndex(
             (t) => t.from === time.from && t.to === time.to
@@ -101,7 +108,9 @@ const TutorSettings = () => {
     };
 
     const addTimeRange = (slotIndex: number) => {
+
         setSlots((prevSlots) => {
+            if (!prevSlots) return null;
             return prevSlots.map((slot, index) => {
                 if (index === slotIndex) {
                     // Generate unique ID using slot index and current time range length
@@ -128,7 +137,9 @@ const TutorSettings = () => {
         const about = formData.get("about") as string;
 
         // Extract Time Slot Data
-        const updatedSlots: WeeklySchedule[] = slots.map((slot, s) => ({
+
+
+        const updatedSlots: WeeklySchedule[] | undefined = slots?.map((slot, s) => ({
             ...slot,
             timeRange: slot.timeRange.map((_, t) => ({
                 id: `slot-${s}-t${t}`,
@@ -284,7 +295,7 @@ const TutorSettings = () => {
                     {/* TIME SLOTS */}
                     <div className="">
                         <p className="py-3 font-semibold">Set Time Slot</p>
-                        {slots.map((slot, s) => {
+                        {slots?.map((slot, s) => {
                             return (
                                 <div
                                     key={slot.day}
