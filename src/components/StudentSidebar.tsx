@@ -283,7 +283,7 @@ const StudentSidebar: FC<StudentSidebarProps> = ({ children }) => {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 w-full">
+      <div className="flex-1 w-full ">
         {/* Mobile Topbar */}
         {showSidebar && (
           <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-white shadow-md sticky top-0 z-40">
@@ -299,7 +299,9 @@ const StudentSidebar: FC<StudentSidebarProps> = ({ children }) => {
           </div>
         )}
 
-        <div className={`${showSidebar ? "p-4 lg:p-10" : ""}`}>{children}</div>
+        <div className={`${showSidebar ? "p-4 lg:p-10 bg-[#E6E6E6]" : ""}`}>
+          {children}
+        </div>
       </div>
     </div>
   );

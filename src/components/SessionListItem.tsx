@@ -75,40 +75,58 @@ const SessionListItem = ({ session }: { session: Session }) => {
   };
 
   useEffect(() => {
-    const checkSessionOngoing = () => {
-      if (
-        session.status === "incomplete" &&
-        session.bookingStartTime &&
-        session.sessionDate
-      ) {
-        // Convert Firestore timestamp to JS Date
-        const bookingDate = timestampToDateOnly(session.sessionDate) as Date;
-        console.log("Booking Date:", bookingDate);
+    if (
+      session.status === "incomplete" &&
+      session.bookingStartTime &&
+      session.sessionDate &&
+      session.duration
+    ) {
+      const sessionDate = timestampToDateOnly(session.sessionDate) as Date;
 
-        // Parse booking start time ("HH:mm")
-        const [hours, minutes] = session.bookingStartTime
-          .split(":")
-          .map(Number);
+      // --- Parse Start Time ---
+      const [startHour, startMinute] = session.bookingStartTime
+        .split(":")
+        .map(Number);
+      const sessionStart = new Date(sessionDate);
+      sessionStart.setHours(startHour, startMinute, 0, 0);
 
-        // Set time on bookingDate
-        bookingDate.setHours(hours, minutes, 0, 0);
+      // --- Parse End Time ---
+      const duration = session.duration.trim().toLowerCase(); // e.g. "09:00 pm"
+      const [timePart, meridiem] = duration.split(" ");
+      const [endHourRaw, endMinute] = timePart.split(":").map(Number);
+      let endHour = endHourRaw;
 
-        const currentTime = new Date();
+      if (meridiem === "pm" && endHour !== 12) endHour += 12;
+      if (meridiem === "am" && endHour === 12) endHour = 0;
 
-        console.log("Full Booking DateTime:", bookingDate);
-        console.log("Current Time:", currentTime);
+      const sessionEnd = new Date(sessionDate);
+      sessionEnd.setHours(endHour, endMinute, 0, 0);
 
-        if (currentTime >= bookingDate) {
-          setSessionOngoing(true);
-        } else {
+      const now = new Date();
+
+      // Determine if session is currently ongoing
+      console.log(sessionStart);
+      console.log(sessionDate);
+      console.log(sessionEnd);
+      console.log(now);
+      // console.log("sessionDate", sessionDate);
+
+      if (now >= sessionStart && now < sessionDate) {
+        setSessionOngoing(true);
+
+        const msUntilEnd = sessionDate.getTime() - now.getTime();
+        const timeout = setTimeout(() => {
           setSessionOngoing(false);
-        }
+        }, msUntilEnd);
+
+        // Clean up timeout on unmount or session change
+        return () => clearTimeout(timeout);
       } else {
         setSessionOngoing(false);
       }
-    };
-
-    checkSessionOngoing();
+    } else {
+      setSessionOngoing(false);
+    }
   }, [session]);
 
   const cancelCurrentSession = async () => {

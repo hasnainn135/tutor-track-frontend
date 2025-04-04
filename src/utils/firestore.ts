@@ -324,6 +324,17 @@ export const cancelSession = async (sessionId: string): Promise<void> => {
   }
 };
 
+export const completeSession = async (sessionId: string): Promise<void> => {
+  try {
+    const docRef = doc(db, "sessions", sessionId);
+    await updateDoc(docRef, {
+      status: "completed",
+    });
+  } catch (e) {
+    throw e;
+  }
+};
+
 export const updateSessionAttendance = async (
   sessionId: string,
   isAbsent: boolean,
@@ -387,17 +398,21 @@ export const getAllReviews = async (tutorId: string): Promise<Reviews[]> => {
 export const timestampToDateOnly = (
   timestamp: FirestoreTimestamp | Date
 ): Date => {
-  let jsDate: Date;
-
-  // Check if the input is a FirestoreTimestamp or a JavaScript Date
-  if (timestamp instanceof Date) {
-    // If it's a Date, use it directly
-    jsDate = new Date(timestamp);
-  } else {
-    // If it's a FirestoreTimestamp, convert to a JS Date
-    jsDate = new Date(timestamp.seconds * 1000);
+  if (!timestamp) {
+    console.warn("timestampToDateOnly: timestamp is null or undefined");
+    return new Date(NaN); // invalid
   }
 
-  // Return a JS Date with only the year, month, and day
+  let jsDate: Date;
+
+  if (timestamp instanceof Date) {
+    jsDate = new Date(timestamp);
+  } else if ("seconds" in timestamp) {
+    jsDate = new Date(timestamp.seconds * 1000);
+  } else {
+    console.warn("timestampToDateOnly: invalid timestamp format", timestamp);
+    return new Date(NaN); // invalid
+  }
+
   return new Date(jsDate.getFullYear(), jsDate.getMonth(), jsDate.getDate());
 };
