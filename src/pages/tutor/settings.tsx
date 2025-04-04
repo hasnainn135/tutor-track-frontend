@@ -9,7 +9,6 @@ import {Button} from "@/components/ui/button";
 import {FiMinusSquare} from "react-icons/fi";
 import Link from "next/link";
 import {TutorSchema, WeeklySchedule} from "@/types/firebase";
-import mh from "@/assets/mh.jpg";
 
 const data = [
     {
