@@ -18,7 +18,7 @@ const Home: NextPage = () => {
                             An integrated platform designed to streamline online tutoring, ensuring seamless scheduling, precise time tracking, and effortless tutor discovery.
                         </p>
                         <a
-                            href="/signup"
+                            href="/auth/register"
                             className="bg-light_green text-dark_green px-8 py-3 rounded font-semibold hover:bg-bright_green transition duration-300"
                         >
                             Get Started
