@@ -9,6 +9,7 @@ import {Button} from "@/components/ui/button";
 import {FiMinusSquare} from "react-icons/fi";
 import Link from "next/link";
 import {TutorSchema, WeeklySchedule} from "@/types/firebase";
+import {useRouter} from "next/router";
 
 const data = [
     {
@@ -59,6 +60,7 @@ const scheduleMap: WeeklySchedule[] = [
 const TutorSettings = () => {
     const {user, userData} = useAuthState();
     console.log(userData)
+    const router = useRouter();
     const tutor = userData as TutorSchema;
     const [error, setError] = useState("");
     console.log("name = ", userData?.fullName)
@@ -191,6 +193,8 @@ const TutorSettings = () => {
                 weeklySchedule: updatedSlots,
             });
         }
+
+        router.push("/student/dashboard");
     };
 
     console.log(userData?.fullName)

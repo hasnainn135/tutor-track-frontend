@@ -1,17 +1,17 @@
 import React, {FormEvent, useState} from "react";
 import Image from "next/image";
-import mh from "@/assets/mh.jpg";
 import useAuthState from "@/states/AuthState";
 import {updatePassword, updateProfile} from "firebase/auth";
 import {doc, updateDoc} from "firebase/firestore";
 import {db} from "@/firebase/firebase";
 import Link from "next/link";
 import {Button} from "@/components/ui/button";
-import {FiMinusSquare} from "react-icons/fi";
 import pfp2 from "@/assets/pfp2.png";
+import {useRouter} from "next/router";
 
 const StudentSettings = () => {
     const {user, userData} = useAuthState();
+    const router = useRouter();
     const [error, setError] = useState("");
     console.log(userData);
 
@@ -50,6 +50,8 @@ const StudentSettings = () => {
                 about: about,
             });
         }
+
+        router.push("/student/dashboard");
     };
 
     if (userData)

@@ -13,19 +13,21 @@ export default function App({Component, pageProps}: AppProps) {
     const router = useRouter();
 
     useEffect(() => {
-
         if (authLoading) return
-
         if (user && userData) {
             if (router.pathname === "/" || router.pathname.includes("/auth")) {
                 userData.role === "student" ? router.push("/student/dashboard") : router.push(`/tutor/dashboard`)
             }
+            if (userData.role === "student" && router.pathname.includes("/tutor")) {
+                    router.push("/student/dashboard");
+            }
+            if (userData.role === "tutor" && router.pathname.includes("/student")) {
+                router.push("/tutor/dashboard");
+            }
         }
-
         if (!user || !userData) {
             if (router.pathname !== "/" && !router.pathname.includes("/auth")) router.push("/auth/login");
         }
-
     }, [user, userData, router]);
 
     if (authLoading) {
