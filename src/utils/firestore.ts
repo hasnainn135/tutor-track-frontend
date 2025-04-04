@@ -7,7 +7,7 @@ import {
   where,
 } from "@firebase/firestore";
 import { auth, db } from "@/firebase/firebase";
-import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, setDoc, addDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import {
   Reviews,
   Session,
@@ -243,8 +243,26 @@ export const createSession = async (
       chargesPerHour: chargesPerHour,
       sessionDate: date,
     };
-    const docRef = doc(db, "sessions", combinedId);
-    await setDoc(docRef, data);
+    const docRef = collection(db, "sessions");
+    await addDoc(docRef, data);
+  } catch (e) {
+    throw e;
+  }
+};
+
+export const getSessions = async (
+    userId: string,
+    roleType: "student" | "tutor"
+): Promise<Session[]> => {
+  try {
+    let q: Query<DocumentData, DocumentData>;
+    if (roleType === "student") {
+      q = query(collection(db, "sessions"), where("studentId", "==", userId));
+    } else {
+      q = query(collection(db, "sessions"), where("tutorId", "==", userId));
+    }
+    const qs = await getDocs(q);
+    return qs.docs.map((doc) => doc.data() as Session);
   } catch (e) {
     throw e;
   }
@@ -273,23 +291,7 @@ export const addSessionNote = async (
   }
 };
 
-export const getSessions = async (
-  userId: string,
-  roleType: "student" | "tutor"
-): Promise<Session[]> => {
-  try {
-    let q: Query<DocumentData, DocumentData>;
-    if (roleType === "student") {
-      q = query(collection(db, "sessions"), where("studentId", "==", userId));
-    } else {
-      q = query(collection(db, "sessions"), where("tutorId", "==", userId));
-    }
-    const qs = await getDocs(q);
-    return qs.docs.map((doc) => doc.data() as Session);
-  } catch (e) {
-    throw e;
-  }
-};
+
 
 export const getSessionNotes = async (
   sessionId: string
