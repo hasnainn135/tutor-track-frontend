@@ -7,8 +7,16 @@ import {
   where,
 } from "@firebase/firestore";
 import { auth, db } from "@/firebase/firebase";
-import { doc, getDoc, setDoc, addDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import {
+  doc,
+  getDoc,
+  setDoc,
+  addDoc,
+  updateDoc,
+  arrayUnion,
+} from "firebase/firestore";
+import {
+  FirestoreTimestamp,
   Reviews,
   Session,
   SessionNotes,
@@ -16,9 +24,11 @@ import {
   TutorSchema,
 } from "@/types/firebase";
 import {
-  createUserWithEmailAndPassword, deleteUser,
+  createUserWithEmailAndPassword,
+  deleteUser,
   sendEmailVerification,
-  updateProfile, User,
+  updateProfile,
+  User,
 } from "firebase/auth";
 
 export const createTutor = async (
@@ -86,13 +96,13 @@ export const createStudent = async (
   }
 };
 
-export const deleteMyUser = async (user: User):Promise<void> => {
+export const deleteMyUser = async (user: User): Promise<void> => {
   try {
     await deleteUser(user);
   } catch (e) {
     throw e;
   }
-}
+};
 
 export const addUser = async (
   tutorId: string,
@@ -251,8 +261,8 @@ export const createSession = async (
 };
 
 export const getSessions = async (
-    userId: string,
-    roleType: "student" | "tutor"
+  userId: string,
+  roleType: "student" | "tutor"
 ): Promise<Session[]> => {
   try {
     let q: Query<DocumentData, DocumentData>;
@@ -290,8 +300,6 @@ export const addSessionNote = async (
     throw e;
   }
 };
-
-
 
 export const getSessionNotes = async (
   sessionId: string
@@ -373,4 +381,23 @@ export const getAllReviews = async (tutorId: string): Promise<Reviews[]> => {
   } catch (e) {
     throw e;
   }
+};
+
+// Convert FirestoreTimestamp or JS Date to Date (with only the date part)
+export const timestampToDateOnly = (
+  timestamp: FirestoreTimestamp | Date
+): Date => {
+  let jsDate: Date;
+
+  // Check if the input is a FirestoreTimestamp or a JavaScript Date
+  if (timestamp instanceof Date) {
+    // If it's a Date, use it directly
+    jsDate = new Date(timestamp);
+  } else {
+    // If it's a FirestoreTimestamp, convert to a JS Date
+    jsDate = new Date(timestamp.seconds * 1000);
+  }
+
+  // Return a JS Date with only the year, month, and day
+  return new Date(jsDate.getFullYear(), jsDate.getMonth(), jsDate.getDate());
 };

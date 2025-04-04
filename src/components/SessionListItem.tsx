@@ -14,8 +14,15 @@ import {
   getTutorById,
   getStudentById,
   updateSessionAttendance,
+  timestampToDateOnly,
+  cancelSession,
 } from "@/utils/firestore";
-import { Session, StudentSchema, TutorSchema } from "@/types/firebase";
+import {
+  FirestoreTimestamp,
+  Session,
+  StudentSchema,
+  TutorSchema,
+} from "@/types/firebase";
 
 const SessionListItem = ({ session }: { session: Session }) => {
   const [tutor, setTutor] = useState<TutorSchema | null>(null);
@@ -44,14 +51,20 @@ const SessionListItem = ({ session }: { session: Session }) => {
     let hours = hour;
 
     // Convert to 24-hour format
-    if (period.toLowerCase() === "pm" && hour !== 12) {
-      hours += 12;
-    } else if (period.toLowerCase() === "am" && hour === 12) {
-      hours = 0;
-    }
+    if (period)
+      if (period.toLowerCase() === "pm" && hour !== 12) {
+        hours += 12;
+      } else if (period.toLowerCase() === "am" && hour === 12) {
+        hours = 0;
+      }
 
     // Create today's date with extracted time
     const now = new Date();
+    console.log(timeString);
+    console.log(
+      new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minute)
+    );
+
     return new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -81,8 +94,13 @@ const SessionListItem = ({ session }: { session: Session }) => {
     checkSessionOngoing();
   }, [session]);
 
-  const cancelSession = () => {
-    console.log(session.status);
+  const cancelCurrentSession = async () => {
+    try {
+      await cancelSession(session.id);
+    } catch (e) {
+      console.log(e);
+      console.log(session.status);
+    }
   };
   const markTutorAttendance = () => {
     console.log(session.isTutorAbsent);
@@ -103,7 +121,7 @@ const SessionListItem = ({ session }: { session: Session }) => {
           className={`w-1 h-full ${
             session.status === "canceled"
               ? "bg-red"
-              : new Date(session.createdAt).toDateString() ===
+              : timestampToDateOnly(session.sessionDate).toDateString() ===
                   new Date().toDateString() || sessionOngoing
               ? "bg-bright_green"
               : session.isTutorAbsent
@@ -117,13 +135,13 @@ const SessionListItem = ({ session }: { session: Session }) => {
             <div className="flex items-center justify-start gap-2 w-48">
               <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-200">
                 <img
-                  src={user?.photoURL ?? undefined}
+                  src={tutor?.profilePicture ?? undefined}
                   alt=""
                   className="object-cover h-9"
                 />
               </div>
               <div className="">
-                <p>{user?.displayName}</p>
+                <p>{tutor?.fullName}</p>
                 {session.status === "completed" && session.isTutorAbsent && (
                   <p className="text-sm text-primary_green font-semibold">
                     Marked Absent
@@ -135,7 +153,7 @@ const SessionListItem = ({ session }: { session: Session }) => {
             <div className="w-28">
               <p className="text-sm">
                 {(() => {
-                  const sessionDate = new Date(session.createdAt);
+                  const sessionDate = timestampToDateOnly(session.sessionDate);
                   const today = new Date();
                   const tomorrow = new Date();
                   tomorrow.setDate(today.getDate() + 1); // Move one day ahead
@@ -160,14 +178,14 @@ const SessionListItem = ({ session }: { session: Session }) => {
               </p>
             </div>
             {/* Session Limit */}
-            <div className="w-28">
+            <div className="">
               <p className="text-sm">Session Limit</p>
               <p
                 className={`text-lg font-semibold ${
                   sessionOngoing && "text-bright_green"
                 }`}
               >
-                {session.status === "canceled" ? "-" : session.actualDuration}
+                {session.status === "canceled" ? "-" : session.duration}
               </p>
             </div>
           </div>
@@ -206,7 +224,7 @@ const SessionListItem = ({ session }: { session: Session }) => {
                   ) : session.status === "incomplete" ? (
                     <DropdownMenuItem
                       className="cursor-pointer"
-                      onClick={cancelSession}
+                      onClick={cancelCurrentSession}
                     >
                       Cancel Session
                     </DropdownMenuItem>
@@ -267,7 +285,7 @@ const SessionListItem = ({ session }: { session: Session }) => {
           className={`w-1 h-full ${
             session.status === "canceled"
               ? "bg-red"
-              : new Date(session.createdAt).toDateString() ===
+              : timestampToDateOnly(session.sessionDate).toDateString() ===
                   new Date().toDateString() || sessionOngoing
               ? "bg-bright_green"
               : session.isStudentAbsent
@@ -281,13 +299,13 @@ const SessionListItem = ({ session }: { session: Session }) => {
             <div className="flex items-center justify-start gap-2 w-48">
               <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-200">
                 <img
-                  src={user?.photoURL ?? undefined}
+                  src={student?.profilePicture ?? undefined}
                   alt=""
                   className="object-cover h-9"
                 />
               </div>
               <div className="">
-                <p>{user?.displayName}</p>
+                <p>{student?.fullName}</p>
                 {session.status === "completed" && session.isStudentAbsent && (
                   <p className="text-sm text-primary_green font-semibold">
                     Marked Absent
@@ -299,7 +317,7 @@ const SessionListItem = ({ session }: { session: Session }) => {
             <div className="w-28">
               <p className="text-sm">
                 {(() => {
-                  const sessionDate = new Date(session.createdAt);
+                  const sessionDate = timestampToDateOnly(session.sessionDate);
                   const today = new Date();
                   const tomorrow = new Date();
                   tomorrow.setDate(today.getDate() + 1); // Move one day ahead
@@ -324,14 +342,14 @@ const SessionListItem = ({ session }: { session: Session }) => {
               </p>
             </div>
             {/* Session Limit */}
-            <div className="w-28">
+            <div className="">
               <p className="text-sm">Session Limit</p>
               <p
                 className={`text-lg font-semibold ${
                   sessionOngoing && "text-bright_green"
                 }`}
               >
-                {session.status === "canceled" ? "-" : session.actualDuration}
+                {session.status === "canceled" ? "-" : session.duration}
               </p>
             </div>
           </div>
@@ -342,7 +360,7 @@ const SessionListItem = ({ session }: { session: Session }) => {
               </Button>
             </Link>
           ) : session.status === "incomplete" &&
-            new Date(session.createdAt).toDateString() ===
+            timestampToDateOnly(session.sessionDate).toDateString() ===
               new Date().toDateString() &&
             showStartButton ? (
             <Link href={``}>
@@ -375,7 +393,7 @@ const SessionListItem = ({ session }: { session: Session }) => {
                   ) : session.status === "incomplete" ? (
                     <DropdownMenuItem
                       className="cursor-pointer"
-                      onClick={cancelSession}
+                      onClick={cancelCurrentSession}
                     >
                       Cancel Session
                     </DropdownMenuItem>

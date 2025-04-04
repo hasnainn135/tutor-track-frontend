@@ -11,17 +11,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Timer from "@/components/Timer";
-import { useUsers } from "@/hooks/useUsers";
 import { IoMdAdd } from "react-icons/io";
-import { Notes } from "@/types/usertypes";
+import { SessionNotes } from "@/types/firebase";
 
 const TutorTracking: FC = () => {
-  const { time, setTime } = useUsers();
+  // const { time, setTime } = useAuthState();
 
   const [start, setStart] = useState<boolean>(false);
   const [pause, setPause] = useState<boolean>(false);
   const [note, setNote] = useState<string>();
-  const [noteList, setNoteList] = useState<Notes[]>([]);
+  const [noteList, setNoteList] = useState<SessionNotes[]>([]);
   const [count, setCount] = useState(0);
 
   const [disableStartButton, setDisableStartButton] = useState<boolean>(false);
@@ -31,54 +30,54 @@ const TutorTracking: FC = () => {
   const router = useRouter();
   const { "session-id": sessionId } = router.query;
 
-  const handleStartStopSession = () => {
-    setStart(!start);
-    setPause(!start ? true : false);
+  // const handleStartStopSession = () => {
+  //   setStart(!start);
+  //   setPause(!start ? true : false);
 
-    // Disable the "Start Session" button for 30s after it's clicked
-    if (!start) {
-      setDisableStartButton(true);
-      // setWait(wait - 1);
+  //   // Disable the "Start Session" button for 30s after it's clicked
+  //   if (!start) {
+  //     setDisableStartButton(true);
+  //     // setWait(wait - 1);
 
-      setTimeout(() => {
-        setDisableStartButton(false);
-        setDisableStatus(null);
-      }, 0.5 * 60 * 1000);
-    } else {
-      setTime("00 : 00 : 00");
-      setCount(0);
-    }
-  };
+  //     setTimeout(() => {
+  //       setDisableStartButton(false);
+  //       setDisableStatus(null);
+  //     }, 0.5 * 60 * 1000);
+  //   } else {
+  //     setTime("00 : 00 : 00");
+  //     setCount(0);
+  //   }
+  // };
 
-  useEffect(() => {
-    console.log("time", time);
-    if (time !== "00 : 00 : 00") {
-      setStart(true);
-      setPause(true);
-    }
-  }, [, time]);
+  // useEffect(() => {
+  //   console.log("time", time);
+  //   if (time !== "00 : 00 : 00") {
+  //     setStart(true);
+  //     setPause(true);
+  //   }
+  // }, [, time]);
 
-  const addNote = () => {
-    if (note) {
-      const newNoteList = [...noteList];
-      const newNote: Notes = {
-        id: "n12",
-        sender_type: "tutor",
-        student_id: "s1",
-        tutor_id: "t2",
-        content: note,
-        time: new Date().toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }),
-      };
+  // const addNote = () => {
+  //   if (note) {
+  //     const newNoteList = [...noteList];
+  //     const newNote: SessionNotes = {
+  //       id: "n12",
+  //       sender_type: "tutor",
+  //       student_id: "s1",
+  //       tutor_id: "t2",
+  //       content: note,
+  //       time: new Date().toLocaleTimeString("en-US", {
+  //         hour: "numeric",
+  //         minute: "2-digit",
+  //         hour12: true,
+  //       }),
+  //     };
 
-      newNoteList.push(newNote);
-      setNoteList(newNoteList);
-      setNote("");
-    }
-  };
+  //     newNoteList.push(newNote);
+  //     setNoteList(newNoteList);
+  //     setNote("");
+  //   }
+  // };
 
   return (
     <div className="flex flex-col h-full gap-3">
@@ -131,7 +130,7 @@ const TutorTracking: FC = () => {
               )}
               <button
                 onClick={() => {
-                  handleStartStopSession();
+                  // handleStartStopSession();
                 }}
                 className="w-52 h-52 border-2 border-primary_green bg-light_green rounded-full text-xl font-semibold text-primary_green disabled:opacity-60"
                 disabled={disableStartButton}
@@ -167,7 +166,7 @@ const TutorTracking: FC = () => {
           ></textarea>
           <button
             className="grid place-content-center bg-primary_green text-white rounded-md flex-shrink-0 w-8 h-8"
-            onClick={addNote}
+            // onClick={addNote}
           >
             <IoMdAdd className="size-5" />
           </button>
@@ -178,7 +177,8 @@ const TutorTracking: FC = () => {
               <div
                 key={note.id}
                 className={`flex items-center py-2 text-sm gap-3  ${
-                  note.sender_type === "student" ? "flex-row-reverse" : ""
+                  // note.sender_type === "student" ? "flex-row-reverse" : ""
+                  ""
                 }`}
               >
                 <div
@@ -188,13 +188,14 @@ const TutorTracking: FC = () => {
                 </div>
                 <p
                   className={`w-full  ${
-                    note.sender_type === "student" ? "text-right" : ""
+                    // note.sender_type === "student" ? "text-right" : ""
+                    ""
                   }`}
                 >
                   {note.content}
                 </p>
                 <p className="text-xs flex-shrink-0 text-gray-400">
-                  {note.time}
+                  {new Date(note.timestamp).toDateString()}
                 </p>
               </div>
             );

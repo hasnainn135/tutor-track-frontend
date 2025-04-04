@@ -11,6 +11,7 @@ import { BsGrid1X2 } from "react-icons/bs";
 import { HiMenu } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
 import useAuthState from "@/states/AuthState";
+import { MdOutlineBook } from "react-icons/md";
 
 type StudentSidebarProps = {
   children: React.ReactNode;
@@ -67,6 +68,11 @@ const StudentSidebar: FC<StudentSidebarProps> = ({ children }) => {
       href: "/student/find-tutors",
       label: "Find Tutors",
       icon: <PiGraduationCap className="size-6" />,
+    },
+    {
+      href: "/student/book-a-session",
+      label: "Book a Session",
+      icon: <MdOutlineBook className="size-6" />,
     },
   ];
   const tutorLinks = [

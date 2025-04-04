@@ -1,10 +1,10 @@
-import { useUsers } from "@/hooks/useUsers";
+// import { useUsers } from "@/hooks/useUsers";
 import { FC } from "react";
 import { FaExpandAlt } from "react-icons/fa";
 import { IoMdPause, IoMdPlay } from "react-icons/io";
 
 const TimerSooner: FC = () => {
-  const { time } = useUsers();
+  // const { time } = useUsers();
 
   return (
     <div className="shadow-[0_0px_4px_0px_#BABABA]   bg-white rounded-xl p-3 z-50">
@@ -21,7 +21,7 @@ const TimerSooner: FC = () => {
         <div className="font-semibold text-2xl pb-1">
           {/* <Timer start={undefined} /> */}
           {/* 01 : 26 : 35 */}
-          {time}
+          {/* {time} */}
         </div>
         <button className="border border-light_gray p-2 rounded-md">
           {/* <IoMdPlay className="size-4" /> */}

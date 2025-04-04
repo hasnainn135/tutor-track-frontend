@@ -12,9 +12,19 @@ import {
 import DatePicker from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import LoadingSpinner from "@/components/ui/loading-spinner";
-import { Session, StudentSchema, TutorSchema } from "@/types/firebase";
+import {
+  FirestoreTimestamp,
+  Session,
+  StudentSchema,
+  TutorSchema,
+} from "@/types/firebase";
 import useAuthState from "@/states/AuthState";
-import { getMyTutors, getSessions, getTutorById } from "@/utils/firestore";
+import {
+  getMyTutors,
+  getSessions,
+  getTutorById,
+  timestampToDateOnly,
+} from "@/utils/firestore";
 
 const StudentSessions = () => {
   const [activeTab, setActiveTab] = useState<number>(1);
@@ -52,6 +62,7 @@ const StudentSessions = () => {
       try {
         if (!user) return;
         const response = await getSessions(user?.uid, "student");
+        console.log(response);
 
         setSessions(response);
       } catch (err) {
@@ -65,7 +76,7 @@ const StudentSessions = () => {
       if (!user) return;
 
       try {
-        const tutors = await getMyTutors(user.uid);
+        const tutors = await getMyTutors(userData as StudentSchema);
 
         setBookedTutors(tutors);
       } catch (error) {
@@ -92,13 +103,13 @@ const StudentSessions = () => {
         .sort(
           (a, b) =>
             sortDescending
-              ? new Date(b.createdAt).getTime() -
-                new Date(a.createdAt).getTime() // Descending for Previous & Canceled
-              : new Date(a.createdAt).getTime() -
-                new Date(b.createdAt).getTime() // Ascending for Upcoming
+              ? timestampToDateOnly(b.sessionDate).getTime() -
+                timestampToDateOnly(a.sessionDate).getTime()
+              : timestampToDateOnly(a.sessionDate).getTime() -
+                timestampToDateOnly(b.sessionDate).getTime() // Ascending for Upcoming
         )
         .reduce<Record<string, Session[]>>((acc, session) => {
-          const sessionDate = new Date(session.createdAt);
+          const sessionDate = timestampToDateOnly(session.sessionDate);
           const today = new Date();
           const tomorrow = new Date();
           tomorrow.setDate(today.getDate() + 1);

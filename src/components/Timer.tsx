@@ -1,4 +1,3 @@
-import { useUsers } from "@/hooks/useUsers";
 import { useEffect, useState } from "react";
 
 const Timer = ({
@@ -10,7 +9,7 @@ const Timer = ({
   count: number;
   setCount: React.Dispatch<React.SetStateAction<number>>;
 }) => {
-  const { time, setTime } = useUsers();
+  // const { time, setTime } = useUsers();
 
   function convertToMilliseconds(timeString: string) {
     const [hours, minutes, seconds] = timeString.split(":").map(Number);
@@ -19,46 +18,46 @@ const Timer = ({
 
   let initTime = Date.now();
 
-  const showTimer = (ms: number) => {
-    // const milliseconds = Math.floor((ms % 1000) / 10)
-    //   .toString()
-    //   .padStart(2, "0");
-    const second = Math.floor((ms / 1000) % 60)
-      .toString()
-      .padStart(2, "0");
-    const minute = Math.floor((ms / 1000 / 60) % 60)
-      .toString()
-      .padStart(2, "0");
-    const hour = Math.floor(ms / 1000 / 60 / 60)
-      .toString()
-      .padStart(2, "0");
+  // const showTimer = (ms: number) => {
+  //   // const milliseconds = Math.floor((ms % 1000) / 10)
+  //   //   .toString()
+  //   //   .padStart(2, "0");
+  //   const second = Math.floor((ms / 1000) % 60)
+  //     .toString()
+  //     .padStart(2, "0");
+  //   const minute = Math.floor((ms / 1000 / 60) % 60)
+  //     .toString()
+  //     .padStart(2, "0");
+  //   const hour = Math.floor(ms / 1000 / 60 / 60)
+  //     .toString()
+  //     .padStart(2, "0");
 
-    setTime(`${hour} : ${minute} : ${second}`);
-  };
+  //   setTime(`${hour} : ${minute} : ${second}`);
+  // };
 
   //UPDATE COUNTER
-  useEffect(() => {
-    if (!start) return;
+  // useEffect(() => {
+  //   if (!start) return;
 
-    const intervalId = setInterval(() => {
-      const elapsedTime = convertToMilliseconds(time) + (Date.now() - initTime);
+  //   const intervalId = setInterval(() => {
+  //     const elapsedTime = convertToMilliseconds(time) + (Date.now() - initTime);
 
-      console.log("TIMER TIME", elapsedTime);
+  //     console.log("TIMER TIME", elapsedTime);
 
-      setCount(elapsedTime);
-      showTimer(elapsedTime);
+  //     setCount(elapsedTime);
+  //     showTimer(elapsedTime);
 
-      if (elapsedTime <= 0) {
-        clearInterval(intervalId);
-      }
-    }, 1000);
+  //     if (elapsedTime <= 0) {
+  //       clearInterval(intervalId);
+  //     }
+  //   }, 1000);
 
-    return () => clearInterval(intervalId); // Cleanup interval on component unmount
-  }, [start, count]);
+  //   return () => clearInterval(intervalId); // Cleanup interval on component unmount
+  // }, [start, count]);
 
   return (
     <div className="text-center">
-      <div className="text-5xl font-semibold ">{time}</div>
+      <div className="text-5xl font-semibold ">{""}</div>
       <div className="grid grid-cols-3 text-center font-medium text-light_gray text-sm">
         <div className="pr-6">hrs</div>
         <div className="">mins</div>

@@ -13,7 +13,12 @@ import DatePicker from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Session, StudentSchema } from "@/types/firebase";
 import useAuthState from "@/states/AuthState";
-import { getMyStudents, getSessions, getStudentById } from "@/utils/firestore";
+import {
+  getMyStudents,
+  getSessions,
+  getStudentById,
+  timestampToDateOnly,
+} from "@/utils/firestore";
 import { TutorSchema } from "@/types/firebase";
 
 const TutorSessions = () => {
@@ -73,7 +78,7 @@ const TutorSessions = () => {
     async function fetchTutorStudents() {
       if (!user) return;
       try {
-        const students = await getMyStudents(user.uid);
+        const students = await getMyStudents(userData as TutorSchema);
 
         setBookedStudents(students);
       } catch (error) {
@@ -98,12 +103,14 @@ const TutorSessions = () => {
         )
         .sort((a, b) =>
           sortDescending
-            ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-            : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+            ? timestampToDateOnly(b.sessionDate).getTime() -
+              timestampToDateOnly(a.sessionDate).getTime()
+            : timestampToDateOnly(a.sessionDate).getTime() -
+              timestampToDateOnly(b.sessionDate).getTime()
         )
         .reduce<Record<string, Session[]>>((acc, session) => {
           // Ensure consistent UTC parsing
-          const sessionDateObj = new Date(session.createdAt);
+          const sessionDateObj = timestampToDateOnly(session.sessionDate);
 
           const today = new Date();
           const tomorrow = new Date();
