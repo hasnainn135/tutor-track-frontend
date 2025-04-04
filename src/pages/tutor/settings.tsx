@@ -10,6 +10,7 @@ import {FiMinusSquare} from "react-icons/fi";
 import Link from "next/link";
 import {TutorSchema, WeeklySchedule} from "@/types/firebase";
 import {useRouter} from "next/router";
+import {deleteMyUser} from "@/utils/firestore";
 
 const data = [
     {
@@ -197,13 +198,21 @@ const TutorSettings = () => {
         router.push("/student/dashboard");
     };
 
-    console.log(userData?.fullName)
+    const handleDeleteUser = async () => {
+        try {
+            await deleteMyUser(user);
+            router.push("/login");
+        } catch (e: any) {
+            setError(e.message);
+        }
+    }
 
     return (
         <div className="flex justify-center px-4">
             <form onSubmit={handleSubmit} className="flex flex-col w-[40rem] h-screen mt-2 gap-3">
                 <p className="font-semibold text-3xl mb-2">Settings</p>
                 <button
+                    onClick={handleDeleteUser}
                     type="submit"
                     className="border border-red rounded-md text-red mt-2 py-2 hover:bg-red-400 "
                 >

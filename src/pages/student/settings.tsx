@@ -1,13 +1,14 @@
 import React, {FormEvent, useState} from "react";
 import Image from "next/image";
 import useAuthState from "@/states/AuthState";
-import {updatePassword, updateProfile} from "firebase/auth";
+import {updatePassword, updateProfile, User} from "firebase/auth";
 import {doc, updateDoc} from "firebase/firestore";
 import {db} from "@/firebase/firebase";
 import Link from "next/link";
 import {Button} from "@/components/ui/button";
 import pfp2 from "@/assets/pfp2.png";
 import {useRouter} from "next/router";
+import {deleteMyUser} from "@/utils/firestore";
 
 const StudentSettings = () => {
     const {user, userData} = useAuthState();
@@ -54,6 +55,15 @@ const StudentSettings = () => {
         router.push("/student/dashboard");
     };
 
+    const handleDeleteUser = async () => {
+        try {
+            await deleteMyUser(user);
+            router.push("/login");
+        } catch (e: any) {
+            setError(e.message);
+        }
+    }
+
     if (userData)
         return (
             <div className="flex justify-center bg-white rounded-lg border border-[#BABABA] py-5 px-4">
@@ -63,6 +73,7 @@ const StudentSettings = () => {
                 >
                     <p className="font-semibold text-3xl mb-2">Settings</p>
                     <button
+                        onClick={handleDeleteUser}
                         type="button"
                         className="border border-red rounded-md text-red mt-2 py-2 hover:bg-red-400 "
                     >
@@ -153,7 +164,7 @@ const StudentSettings = () => {
                                 Cancel
                             </Button>
                         </Link>
-                        <p>{error}</p>
+                        <p className="text-red text-center mb-4">{error}</p>
                     </div>
                 </form>
             </div>

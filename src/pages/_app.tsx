@@ -19,7 +19,7 @@ export default function App({Component, pageProps}: AppProps) {
                 userData.role === "student" ? router.push("/student/dashboard") : router.push(`/tutor/dashboard`)
             }
             if (userData.role === "student" && router.pathname.includes("/tutor")) {
-                    router.push("/student/dashboard");
+                router.push("/student/dashboard");
             }
             if (userData.role === "tutor" && router.pathname.includes("/student")) {
                 router.push("/tutor/dashboard");

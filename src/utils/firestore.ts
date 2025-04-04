@@ -16,9 +16,9 @@ import {
   TutorSchema,
 } from "@/types/firebase";
 import {
-  createUserWithEmailAndPassword,
+  createUserWithEmailAndPassword, deleteUser,
   sendEmailVerification,
-  updateProfile,
+  updateProfile, User,
 } from "firebase/auth";
 
 export const createTutor = async (
@@ -85,6 +85,14 @@ export const createStudent = async (
     throw e;
   }
 };
+
+export const deleteMyUser = async (user: User):Promise<void> => {
+  try {
+    await deleteUser(user);
+  } catch (e) {
+    throw e;
+  }
+}
 
 export const addUser = async (
   tutorId: string,
